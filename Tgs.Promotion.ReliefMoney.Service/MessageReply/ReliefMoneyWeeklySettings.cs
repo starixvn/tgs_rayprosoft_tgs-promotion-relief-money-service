@@ -1,6 +1,8 @@
-﻿namespace Tgs.Promotion.ReliefMoney.service.MessageReply;
+﻿using Tgs.Promotion.ReliefMoney.Service;
+
+namespace Tgs.Promotion.ReliefMoney.service.MessageReply;
 public record ReliefMoneyWeeklySettings(
-	short? GameType,
+    GameType? GameType,
 	IEnumerable<Guid> GameProviderIds,
 	decimal BonusAmountLimit,
 	decimal Percentage,
