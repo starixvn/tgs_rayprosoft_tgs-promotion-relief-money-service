@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using Google.Protobuf;
 using Tgs.MessageQueue;
 using Tgs.Promotion.Clients.Protos;
@@ -19,12 +20,16 @@ public class ReliefMoneyWeeklyRuleReplyProcessor : IMessageProcessor
 	{
 		var request = CampaignDetailRequest.Parser.ParseFrom(data.Span);
 
-		var settings = JsonSerializer.Deserialize<ReliefMoneyWeeklySettings>(
-			request.Settings,
-			new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-			?? throw new ArgumentNullException(nameof(data));
+        var settings = JsonSerializer.Deserialize<ReliefMoneyWeeklySettings>(
+                request.Settings,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    Converters = { new JsonStringEnumConverter() }
+                })
+            ?? throw new ArgumentNullException(nameof(data));
 
-		_logger.LogInformation("ReliefMoneyWeekly setting : {settings}", settings);
+		_logger.LogInformation("ReliefMoneyWeekly setting : {request.Settings}", request.Settings);
 
 		var response = new CampaignDetailResponse
 		{
