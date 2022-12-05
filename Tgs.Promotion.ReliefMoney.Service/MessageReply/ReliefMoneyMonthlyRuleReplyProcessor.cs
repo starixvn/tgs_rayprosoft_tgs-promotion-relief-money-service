@@ -41,8 +41,9 @@ public class ReliefMoneyMonthlyRuleReplyProcessor : IMessageProcessor
 				}),
 			BonusAmountLimit = settings.BonusAmountLimit,
 			Percentage = settings.Percentage,
-			TurnoverMultiple = settings.TurnoverMultiple
-		};
+			TurnoverMultiple = settings.TurnoverMultiple,
+            GameType = settings.GameType.ToString()
+        };
 
 		return ValueTask.FromResult((ReadOnlyMemory<byte>)response.ToByteArray());
 	}
