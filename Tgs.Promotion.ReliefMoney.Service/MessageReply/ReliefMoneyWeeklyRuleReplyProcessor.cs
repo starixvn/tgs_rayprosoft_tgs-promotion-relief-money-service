@@ -10,7 +10,14 @@ public class ReliefMoneyWeeklyRuleReplyProcessor : IMessageProcessor
 {
 	private readonly ILogger<ReliefMoneyWeeklyRuleReplyProcessor> _logger;
 
-	public ReliefMoneyWeeklyRuleReplyProcessor(ILogger<ReliefMoneyWeeklyRuleReplyProcessor> logger)
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+        Converters = { new JsonStringEnumConverter() }
+    };
+
+    public ReliefMoneyWeeklyRuleReplyProcessor(ILogger<ReliefMoneyWeeklyRuleReplyProcessor> logger)
 	{
 		_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 	}
@@ -22,23 +29,14 @@ public class ReliefMoneyWeeklyRuleReplyProcessor : IMessageProcessor
 
         var settings = JsonSerializer.Deserialize<ReliefMoneyWeeklySettings>(
                 request.Settings,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    Converters = { new JsonStringEnumConverter() }
-                })
+                _jsonSerializerOptions)
             ?? throw new ArgumentNullException(nameof(data));
 
 		_logger.LogInformation("ReliefMoneyWeekly setting : {request.Settings}", request.Settings);
 
 		var response = new CampaignDetailResponse
 		{
-			CampaignDetail = JsonSerializer.Serialize(settings,
-				new JsonSerializerOptions
-				{
-					PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-					WriteIndented = true
-				}),
+			CampaignDetail = JsonSerializer.Serialize(settings, _jsonSerializerOptions),
 			BonusAmountLimit = settings.BonusAmountLimit,
 			Percentage = settings.Percentage,
 			TurnoverMultiple = settings.TurnoverMultiple,
