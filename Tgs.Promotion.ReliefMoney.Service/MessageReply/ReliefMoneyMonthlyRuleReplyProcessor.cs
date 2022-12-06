@@ -9,8 +9,15 @@ namespace Tgs.Promotion.ReliefMoney.service.MessageReply;
 public class ReliefMoneyMonthlyRuleReplyProcessor : IMessageProcessor
 {
 	private readonly ILogger<ReliefMoneyMonthlyRuleReplyProcessor> _logger;
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+        Converters = { new JsonStringEnumConverter() }
+    };
 
-	public ReliefMoneyMonthlyRuleReplyProcessor(ILogger<ReliefMoneyMonthlyRuleReplyProcessor> logger)
+    public ReliefMoneyMonthlyRuleReplyProcessor(ILogger<ReliefMoneyMonthlyRuleReplyProcessor> logger)
 	{
 		_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 	}
@@ -22,23 +29,14 @@ public class ReliefMoneyMonthlyRuleReplyProcessor : IMessageProcessor
 
 		var settings = JsonSerializer.Deserialize<ReliefMoneyMonthlySettings>(
                 request.Settings,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    Converters = { new JsonStringEnumConverter() }
-                })
+                _jsonSerializerOptions)
             ?? throw new ArgumentNullException(nameof(data));
 
         _logger.LogInformation("ReliefMoneyMonthly setting : {request.Settings}", request.Settings);
 
 		var response = new CampaignDetailResponse
 		{
-			CampaignDetail = JsonSerializer.Serialize(settings,
-				new JsonSerializerOptions
-				{
-					PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-					WriteIndented = true
-				}),
+			CampaignDetail = JsonSerializer.Serialize(settings, _jsonSerializerOptions),
 			BonusAmountLimit = settings.BonusAmountLimit,
 			Percentage = settings.Percentage,
 			TurnoverMultiple = settings.TurnoverMultiple,
