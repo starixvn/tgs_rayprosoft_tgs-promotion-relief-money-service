@@ -1,0 +1,62 @@
+﻿{
+   "CodeGenerationMode": 3,
+   "ContextClassName": "tgsContext",
+   "ContextNamespace": "Entities",
+   "DefaultDacpacSchema": null,
+   "FilterSchemas": false,
+   "IncludeConnectionString": false,
+   "ModelNamespace": "Entities",
+   "OutputContextPath": "Entities",
+   "OutputPath": "Entities\\Models",
+   "PreserveCasingWithRegex": true,
+   "ProjectRootNamespace": "Tgs.Promotion.ReliefMoney.Repositories",
+   "Schemas": null,
+   "SelectedHandlebarsLanguage": 0,
+   "SelectedToBeGenerated": 0,
+   "Tables": [
+      {
+         "Name": "dbo.brand_games",
+         "ObjectType": 0
+      },
+      {
+         "Name": "dbo.promotion_participants",
+         "ObjectType": 0
+      },
+      {
+         "Name": "dbo.promotion_relief_daily_statistics",
+         "ObjectType": 0
+      },
+      {
+         "Name": "dbo.promotion_relief_distributes",
+         "ObjectType": 0
+      },
+      {
+         "Name": "dbo.settings",
+         "ObjectType": 0
+      },
+      {
+         "Name": "report.player_game_rebate_aggregates",
+         "ObjectType": 0
+      }
+   ],
+   "UiHint": "tgs",
+   "UncountableWords": null,
+   "UseBoolPropertiesWithoutDefaultSql": false,
+   "UseDatabaseNames": false,
+   "UseDateOnlyTimeOnly": true,
+   "UseDbContextSplitting": true,
+   "UseFluentApiOnly": true,
+   "UseHandleBars": false,
+   "UseHierarchyId": false,
+   "UseInflector": true,
+   "UseLegacyPluralizer": false,
+   "UseManyToManyEntity": true,
+   "UseNoDefaultConstructor": false,
+   "UseNoObjectFilter": false,
+   "UseNodaTime": false,
+   "UseNullableReferences": true,
+   "UseSchemaFolders": true,
+   "UseSchemaNamespaces": false,
+   "UseSpatial": false,
+   "UseT4": false
+}
