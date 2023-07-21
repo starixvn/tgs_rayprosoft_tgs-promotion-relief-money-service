@@ -2,15 +2,14 @@
 using NSubstitute;
 using Tgs.BrandCertificate.Clients;
 using Tgs.Promotion.Clients;
-using Tgs.Promotion.ReliefMoney.Core;
 using Tgs.Promotion.ReliefMoney.Core.ApplicationServices;
 
 namespace Tgs.Promotion.ReliefMoney.Core.UnitTests;
 
-public class CalculateDailyRebateTests
+public class CalculateDailyReliefTests
 {
 	[Test]
-	public async Task 輸入指定日期_統計每日反水()
+	public async Task 輸入指定日期_統計每日救援金()
 	{
 		// Arrange
 		var fakeTgsRepository = Substitute.For<ITgsRepository>();

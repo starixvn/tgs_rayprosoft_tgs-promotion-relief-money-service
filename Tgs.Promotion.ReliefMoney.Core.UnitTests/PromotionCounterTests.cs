@@ -51,7 +51,7 @@ internal static class PromotionCounterTestExtensionMethods
 public class PromotionCounterTests
 {
 	[Test]
-	public async Task 處理活動反水_會過濾是同一個Brand的資料()
+	public async Task 處理活動救援金_會過濾是同一個Brand的資料()
 	{
 		// Arrange
 		var promotionMainInfo = new PromotionMainInfo
@@ -112,7 +112,7 @@ public class PromotionCounterTests
 	}
 
 	[Test]
-	public async Task 處理活動反水_如果不是預設參加_會使用參加名單過濾()
+	public async Task 處理活動救援金_如果不是預設參加_會使用參加名單過濾()
 	{
 		// Arrange
 		var promotionMainInfo = new PromotionMainInfo
@@ -173,7 +173,7 @@ public class PromotionCounterTests
 	}
 
     [Test]
-	public async Task 處理活動反水_如果GameType有值_沒有特別選定GP_會依照GameType過濾()
+	public async Task 處理活動救援金_如果GameType有值_沒有特別選定GP_會依照GameType過濾()
 	{
 		// Arrange
 		var promotionMainInfo = new PromotionMainInfo
@@ -235,7 +235,7 @@ public class PromotionCounterTests
 	}
 
     [Test]
-	public async Task 處理活動反水_指定GameType並且選定GP_會依照GP過濾()
+	public async Task 處理活動救援金_指定GameType並且選定GP_會依照GP過濾()
 	{
 		// Arrange
 		var promotionMainInfo = new PromotionMainInfo
@@ -299,7 +299,7 @@ public class PromotionCounterTests
 	}
 
     [Test]
-	public async Task 活動反水計算會依照設定值公式計算()
+	public async Task 活動救援金計算會依照設定值公式計算()
 	{
 		// Arrange
 		var promotionMainInfo = new PromotionMainInfo

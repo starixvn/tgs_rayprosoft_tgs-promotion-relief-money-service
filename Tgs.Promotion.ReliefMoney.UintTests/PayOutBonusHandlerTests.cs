@@ -10,7 +10,7 @@ namespace Tgs.Promotion.ReliefMoney.UintTests;
 public class PayOutBonusHandlerTests
 {
 	[Test]
-	public async Task 執行將反水提撥到玩家錢包()
+	public async Task 執行將救援金提撥到玩家錢包()
 	{
 		// Arrange
 		var fakePayOutService = Substitute.For<ICommandService<PayOutCommand>>();

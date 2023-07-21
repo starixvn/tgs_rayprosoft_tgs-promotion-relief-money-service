@@ -9,7 +9,7 @@ message DailySettlementRequest {
     google.protobuf.Timestamp settle_date_time = 1;
 }
 
-message RebateDistributeRequest {
+message ReliefDistributeRequest {
     google.protobuf.Timestamp distribute_date_time = 1;
 }
 

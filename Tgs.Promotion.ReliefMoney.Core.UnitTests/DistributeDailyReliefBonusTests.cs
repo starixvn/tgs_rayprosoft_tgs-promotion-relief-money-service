@@ -8,10 +8,10 @@ using Tgs.SerialNumberGenerator;
 
 namespace Tgs.Promotion.ReliefMoney.Core.UnitTests;
 
-public class DistributeDailyRebateBonusTests
+public class DistributeDailyReliefBonusTests
 {
 	[Test]
-	public async Task 輸入指定日期_發放每日反水()
+	public async Task 輸入指定日期_發放每日救援金()
 	{
 		// Arrange
 		var fakePromotionServiceClient = Substitute.For<IPromotionServiceClient>();
@@ -97,7 +97,7 @@ public class DistributeDailyRebateBonusTests
 	}
 
 	[Test]
-	public async Task 輸入指定日期_發放每日反水_()
+	public async Task 輸入指定日期_發放每日救援金_()
 	{
 		// Arrange
 		var fakePromotionServiceClient = Substitute.For<IPromotionServiceClient>();

@@ -23,7 +23,7 @@ public class DailyDistributeBonusHandler : IMessageHandler
 
     public async ValueTask HandleAsync(ReadOnlyMemory<byte> data, CancellationToken cancellationToken = default)
     {
-        var request = RebateDistributeRequest.Parser.ParseFrom(data.Span);
+        var request = ReliefDistributeRequest.Parser.ParseFrom(data.Span);
 
         _logger.LogInformation("Process daily settle {date}", request.DistributeDateTime.ToDateTime());
 

@@ -12,7 +12,7 @@ namespace Tgs.Promotion.ReliefMoney.UintTests;
 public class DailySettlementHandlerTests
 {
 	[Test]
-	public async Task 處理排程觸發結算每日反水統計()
+	public async Task 處理排程觸發結算每日救援金統計()
 	{
 		// Arrange
 		var fakeCalculateService = Substitute.For<ICommandService<CalculateDailyReliefCommand>>();

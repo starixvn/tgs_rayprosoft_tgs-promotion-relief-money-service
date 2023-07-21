@@ -12,7 +12,7 @@ namespace Tgs.Promotion.ReliefMoney.UintTests;
 public class DailyDistributeBonusHandlerTests
 {
 	[Test]
-	public async Task 處理排程每日反水發放()
+	public async Task 處理排程每日救援金發放()
 	{
 		// Arrange
 		var fakeDistributeService = Substitute.For<ICommandService<DistributeDailyReliefBonusCommand>>();
@@ -25,7 +25,7 @@ public class DailyDistributeBonusHandlerTests
 
 		var date = DateTimeOffset.Parse("2022-12-8 16:00:00+00");
 
-		var request = new RebateDistributeRequest
+		var request = new ReliefDistributeRequest
 		{
 			DistributeDateTime = Timestamp.FromDateTime(date.UtcDateTime)
 		};

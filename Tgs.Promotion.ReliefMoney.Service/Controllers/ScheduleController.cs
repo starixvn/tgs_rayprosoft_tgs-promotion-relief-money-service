@@ -56,7 +56,7 @@ public class ScheduleController : ControllerBase
 	{
 		var utcNow = DateTime.UtcNow;
 
-		var request = new RebateDistributeRequest
+		var request = new ReliefDistributeRequest
 		{
 			DistributeDateTime = Timestamp.FromDateTime(new DateTime(utcNow.Year, utcNow.Month, utcNow.Day, utcNow.Hour, 0, 0, DateTimeKind.Utc))
 		};
@@ -76,7 +76,7 @@ public class ScheduleController : ControllerBase
 	{
 		var distributeDateTime = new DateTimeOffset(distributeDate.Year, distributeDate.Month, distributeDate.Day, utcHour, 0, 0, TimeSpan.Zero);
 
-		var request = new RebateDistributeRequest
+		var request = new ReliefDistributeRequest
 		{
 			DistributeDateTime = Timestamp.FromDateTime(distributeDateTime.UtcDateTime)
 		};

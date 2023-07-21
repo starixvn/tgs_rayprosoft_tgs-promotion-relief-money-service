@@ -35,11 +35,11 @@ internal class DistributeWeeklyReliefBonusCommandService : ICommandService<Distr
 	{
 		var hour = command.ScheduleDateTime.Hour;
 
-		var value = await _tgsRepository.GetTimeSpanMinutesAsync("PromotionWeeklyRebateMinutes", cancellationToken);
+		var value = await _tgsRepository.GetTimeSpanMinutesAsync("PromotionWeeklyReliefMinutes", cancellationToken);
 
 		if (value == null)
 		{
-			_logger.LogError(@"Settings key ""PromotionWeeklyRebateMinutes"" is null.");
+			_logger.LogError(@"Settings key ""PromotionWeeklyReliefMinutes"" is null.");
 
 			return;
 		}
@@ -48,7 +48,7 @@ internal class DistributeWeeklyReliefBonusCommandService : ICommandService<Distr
 
 		if (timeSpanMinutesJson?.TryGetValue(hour, out var timeSpanMinutes) == null || timeSpanMinutes == null)
 		{
-			_logger.LogInformation("Can't found the timeSpanMinutes value from json. (PromotionWeeklyRebateMinutes)");
+			_logger.LogInformation("Can't found the timeSpanMinutes value from json. (PromotionWeeklyReliefMinutes)");
 
 			return;
 		}

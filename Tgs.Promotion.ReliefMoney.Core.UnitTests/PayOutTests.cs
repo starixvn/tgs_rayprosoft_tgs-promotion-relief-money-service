@@ -8,7 +8,7 @@ namespace Tgs.Promotion.ReliefMoney.Core.UnitTests;
 public class PayOutTests
 {
 	[Test]
-	public async Task 發放已經計算好的反水給玩家()
+	public async Task 發放已經計算好的救援金給玩家()
 	{
 		// Arrange
 		var fakeTgsRepository = Substitute.For<ITgsRepository>();

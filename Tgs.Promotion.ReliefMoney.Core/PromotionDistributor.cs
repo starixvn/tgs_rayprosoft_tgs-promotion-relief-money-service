@@ -147,7 +147,7 @@ internal class PromotionDistributor
                 };
 
                 _ = await _messageSender.RequestAsync(
-                    "tgs.rebate.ipc.payout",
+                    "tgs.relief.ipc.payout",
                     request.ToByteArray(),
                     cancellationToken).ConfigureAwait(false);
             }

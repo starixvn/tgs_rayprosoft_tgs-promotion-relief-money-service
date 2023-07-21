@@ -8,7 +8,7 @@ internal class PromotionCounter
     private readonly PromotionMainInfo _promotionMainInfo;
     private readonly IPromotionServiceClient _promotionServiceClient;
     private int _gameProviderIdCount;
-    private ReliefSettings _rebateSettings = default!;
+    private ReliefSettings _reliefSettings = default!;
 
     public Guid BrandId => _promotionMainInfo.BrandId;
 
@@ -33,12 +33,12 @@ internal class PromotionCounter
             throw new NullReferenceException(nameof(promotionRule));
         }
 
-        _rebateSettings = promotionRule.CampaignDetail with
+        _reliefSettings = promotionRule.CampaignDetail with
         {
             VipLevels = promotionRule.VipLevels
         };
 
-        _gameProviderIdCount = _rebateSettings.GameProviderIds?.Count() ?? 0;
+        _gameProviderIdCount = _reliefSettings.GameProviderIds?.Count() ?? 0;
     }
 
     public IAsyncEnumerable<PromotionReliefSettlement> ProcessBatchAsync(
@@ -46,17 +46,17 @@ internal class PromotionCounter
         CancellationToken cancellationToken = default)
         => (from gameRound in statistics
             where gameRound.BrandId == BrandId
-            where _rebateSettings.DefaultJoin
+            where _reliefSettings.DefaultJoin
                 || _joinPlayers.Contains(gameRound.PlayerCode)
-            where _rebateSettings.VipLevels.Contains(gameRound.VipLevel)
-            where _rebateSettings.GameType is null
-                || gameRound.GameType == _rebateSettings.GameType
+            where _reliefSettings.VipLevels.Contains(gameRound.VipLevel)
+            where _reliefSettings.GameType is null
+                || gameRound.GameType == _reliefSettings.GameType
             where _gameProviderIdCount == 0
-                || _rebateSettings.GameProviderIds!.Contains(gameRound.GameProviderId)
+                || _reliefSettings.GameProviderIds!.Contains(gameRound.GameProviderId)
             group gameRound by gameRound.PlayerCode
             into g
             let totalWinLoss = g.Sum(round => round.TotalWinLoss)
-            let calculateBonus = totalWinLoss * _rebateSettings.Percentage / 100M
+            let calculateBonus = totalWinLoss * _reliefSettings.Percentage / 100M
             let bonus = calculateBonus
             select new PromotionReliefSettlement(
                 g.Key,
@@ -64,8 +64,8 @@ internal class PromotionCounter
                 _promotionMainInfo.Id,
                 totalWinLoss,
                 bonus,
-                _rebateSettings.TurnoverMultiple * bonus,
-                _rebateSettings))
+                _reliefSettings.TurnoverMultiple * bonus,
+                _reliefSettings))
             .ToAsyncEnumerable()
             .Do(_ => cancellationToken.ThrowIfCancellationRequested());
 

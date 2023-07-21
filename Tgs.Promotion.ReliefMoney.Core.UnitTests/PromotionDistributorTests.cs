@@ -9,7 +9,7 @@ namespace Tgs.Promotion.ReliefMoney.Core.UnitTests;
 public class PromotionDistributorTests
 {
 	[Test]
-	public async Task 活動反水發放如果Bonus超過最大發放值則以最大值為主()
+	public async Task 活動救援金發放如果Bonus超過最大發放值則以最大值為主()
 	{
 		// Arrange
 		var promotionMainInfo = new PromotionMainInfo
@@ -85,7 +85,7 @@ public class PromotionDistributorTests
 	}
 
 	[Test]
-	public async Task 活動反水發放會依照每日統計執行發放()
+	public async Task 活動救援金發放會依照每日統計執行發放()
 	{
 		// Arrange
 		var promotionMainInfo = new PromotionMainInfo
@@ -160,7 +160,7 @@ public class PromotionDistributorTests
 	}
 
 	[Test]
-	public async Task 活動反水發放會依照日期區間統計做發放()
+	public async Task 活動救援金發放會依照日期區間統計做發放()
 	{
 		// Arrange
 		var promotionMainInfo = new PromotionMainInfo
@@ -315,7 +315,7 @@ public class PromotionDistributorTests
 	}
 
 	[Test]
-	public async Task 活動反水發放如果有效投注未達門檻不會計算進去()
+	public async Task 活動救援金發放如果有效投注未達門檻不會計算進去()
 	{
 		// Arrange
 		var promotionMainInfo = new PromotionMainInfo
@@ -383,7 +383,7 @@ public class PromotionDistributorTests
 	}
 
 	[Test]
-	public async Task 活動反水發放如果已超過發放上限則不派發彩金()
+	public async Task 活動救援金發放如果已超過發放上限則不派發彩金()
 	{
 		// Arrange
 		var promotionMainInfo = new PromotionMainInfo

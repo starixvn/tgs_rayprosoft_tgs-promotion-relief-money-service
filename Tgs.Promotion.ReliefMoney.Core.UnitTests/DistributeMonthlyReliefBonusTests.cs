@@ -8,10 +8,10 @@ using Tgs.SerialNumberGenerator;
 
 namespace Tgs.Promotion.ReliefMoney.Core.UnitTests;
 
-public class DistributeWeeklyReliefBonusTests
+public class DistributeMonthlyReliefBonusTests
 {
 	[Test]
-	public async Task 每週反水發放_觸發時間未到不會發放()
+	public async Task 每週救援金發放_觸發時間未到不會發放()
 	{
 		// Arrange
 		var fakePromotionServiceClient = Substitute.For<IPromotionServiceClient>();
@@ -19,15 +19,15 @@ public class DistributeWeeklyReliefBonusTests
 		var fakeServiceProvider = Substitute.For<IServiceProvider>();
 		var fakeBrandServiceClient = Substitute.For<IBrandServiceClient>();
 
-		var sut = new DistributeWeeklyReliefBonusCommandService(fakePromotionServiceClient,
+		var sut = new DistributeMonthlyReliefBonusCommandService(fakePromotionServiceClient,
 			fakeTgsRepository,
 			fakeServiceProvider,
 			fakeBrandServiceClient,
-			NullLogger<DistributeWeeklyReliefBonusCommandService>.Instance);
+			NullLogger<DistributeMonthlyReliefBonusCommandService>.Instance);
 
 		var scheduleTime = DateTimeOffset.Parse("2023-01-02 01:00:00-08");
 
-		var command = new DistributeWeeklyReliefBonusCommand(scheduleTime.UtcDateTime);
+		var command = new DistributeMonthlyReliefBonusCommand(scheduleTime.UtcDateTime);
 
 		var promotionId = Guid.NewGuid();
 		var brandId = Guid.NewGuid();
@@ -49,7 +49,7 @@ public class DistributeWeeklyReliefBonusTests
 		}.ToAsyncEnumerable());
 
 		_ = fakePromotionServiceClient.ListPromotionsByPromotionTypeAsync(
-				Arg.Is("ReliefMoneyWeekly"))
+				Arg.Is("ReliefMoneyMonthly"))
 			.Returns(new[]
 			{
 				new PromotionMainInfo
@@ -81,7 +81,7 @@ public class DistributeWeeklyReliefBonusTests
 	}
 
 	[Test]
-	public async Task 每週反水發放_觸發時間未到不會發放_()
+	public async Task 每週救援金發放_觸發時間未到不會發放_()
 	{
 		// Arrange
 		var fakePromotionServiceClient = Substitute.For<IPromotionServiceClient>();
@@ -89,15 +89,15 @@ public class DistributeWeeklyReliefBonusTests
 		var fakeServiceProvider = Substitute.For<IServiceProvider>();
 		var fakeBrandServiceClient = Substitute.For<IBrandServiceClient>();
 
-		var sut = new DistributeWeeklyReliefBonusCommandService(fakePromotionServiceClient,
+		var sut = new DistributeMonthlyReliefBonusCommandService(fakePromotionServiceClient,
 			fakeTgsRepository,
 			fakeServiceProvider,
 			fakeBrandServiceClient,
-			NullLogger<DistributeWeeklyReliefBonusCommandService>.Instance);
+			NullLogger<DistributeMonthlyReliefBonusCommandService>.Instance);
 
 		var scheduleTime = DateTimeOffset.Parse("2022-12-26 00:00:00-08");
 
-		var command = new DistributeWeeklyReliefBonusCommand(scheduleTime.UtcDateTime);
+		var command = new DistributeMonthlyReliefBonusCommand(scheduleTime.UtcDateTime);
 
 		var promotionId = Guid.NewGuid();
 		var brandId = Guid.NewGuid();
@@ -121,7 +121,7 @@ public class DistributeWeeklyReliefBonusTests
 			}.ToAsyncEnumerable());
 
 		_ = fakePromotionServiceClient.ListPromotionsByPromotionTypeAsync(
-				Arg.Is("ReliefMoneyWeekly"))
+				Arg.Is("ReliefMoneyMonthly"))
 			.Returns(new[]
 			{
 				new PromotionMainInfo
@@ -153,7 +153,7 @@ public class DistributeWeeklyReliefBonusTests
 	}
 
 	[Test]
-	public async Task 輸入日期_發放每週反水_With_8_Of_Time_Zone_For_First_Week()
+	public async Task 輸入日期_發放每週救援金_With_8_Of_Time_Zone_For_First_Week()
 	{
 		// Arrange
 		var fakePromotionServiceClient = Substitute.For<IPromotionServiceClient>();
@@ -161,15 +161,15 @@ public class DistributeWeeklyReliefBonusTests
 		var fakeServiceProvider = Substitute.For<IServiceProvider>();
 		var fakeBrandServiceClient = Substitute.For<IBrandServiceClient>();
 
-		var sut = new DistributeWeeklyReliefBonusCommandService(fakePromotionServiceClient,
+		var sut = new DistributeMonthlyReliefBonusCommandService(fakePromotionServiceClient,
 			fakeTgsRepository,
 			fakeServiceProvider,
 			fakeBrandServiceClient,
-			NullLogger<DistributeWeeklyReliefBonusCommandService>.Instance);
+			NullLogger<DistributeMonthlyReliefBonusCommandService>.Instance);
 
 		var scheduleTime = DateTimeOffset.Parse("2022-12-05 00:00:00+08");
 
-		var command = new DistributeWeeklyReliefBonusCommand(scheduleTime.UtcDateTime);
+		var command = new DistributeMonthlyReliefBonusCommand(scheduleTime.UtcDateTime);
 
 		var promotionId = Guid.NewGuid();
 		var brandId = Guid.NewGuid();
@@ -201,7 +201,7 @@ public class DistributeWeeklyReliefBonusTests
 			.Returns(0m);
 
 		_ = fakePromotionServiceClient.ListPromotionsByPromotionTypeAsync(
-				Arg.Is("ReliefMoneyWeekly"))
+				Arg.Is("ReliefMoneyMonthly"))
 			.Returns(new[]
 			{
 				new PromotionMainInfo
@@ -240,7 +240,7 @@ public class DistributeWeeklyReliefBonusTests
 	}
 
 	[Test]
-	public async Task 輸入日期_發放每週反水_With_8_Of_Time_Zone_For_Last_Week()
+	public async Task 輸入日期_發放每週救援金_With_8_Of_Time_Zone_For_Last_Week()
 	{
 		// Arrange
 		var fakePromotionServiceClient = Substitute.For<IPromotionServiceClient>();
@@ -248,15 +248,15 @@ public class DistributeWeeklyReliefBonusTests
 		var fakeServiceProvider = Substitute.For<IServiceProvider>();
 		var fakeBrandServiceClient = Substitute.For<IBrandServiceClient>();
 
-		var sut = new DistributeWeeklyReliefBonusCommandService(fakePromotionServiceClient,
+		var sut = new DistributeMonthlyReliefBonusCommandService(fakePromotionServiceClient,
 			fakeTgsRepository,
 			fakeServiceProvider,
 			fakeBrandServiceClient,
-			NullLogger<DistributeWeeklyReliefBonusCommandService>.Instance);
+			NullLogger<DistributeMonthlyReliefBonusCommandService>.Instance);
 
 		var scheduleTime = DateTimeOffset.Parse("2023-01-01 16:00:00+00");
 
-		var command = new DistributeWeeklyReliefBonusCommand(scheduleTime.UtcDateTime);
+		var command = new DistributeMonthlyReliefBonusCommand(scheduleTime.UtcDateTime);
 
 		var promotionId = Guid.NewGuid();
 		var brandId = Guid.NewGuid();
@@ -288,7 +288,7 @@ public class DistributeWeeklyReliefBonusTests
 			.Returns(0m);
 
 		_ = fakePromotionServiceClient.ListPromotionsByPromotionTypeAsync(
-				Arg.Is("ReliefMoneyWeekly"))
+				Arg.Is("ReliefMoneyMonthly"))
 			.Returns(new[]
 			{
 				new PromotionMainInfo
@@ -327,7 +327,7 @@ public class DistributeWeeklyReliefBonusTests
 	}
 
 	[Test]
-	public async Task 輸入日期_發放每週反水_With_8_Of_Time_Zone_For_Middle_Week()
+	public async Task 輸入日期_發放每週救援金_With_8_Of_Time_Zone_For_Middle_Week()
 	{
 		// Arrange
 		var fakePromotionServiceClient = Substitute.For<IPromotionServiceClient>();
@@ -335,15 +335,15 @@ public class DistributeWeeklyReliefBonusTests
 		var fakeServiceProvider = Substitute.For<IServiceProvider>();
 		var fakeBrandServiceClient = Substitute.For<IBrandServiceClient>();
 
-		var sut = new DistributeWeeklyReliefBonusCommandService(fakePromotionServiceClient,
+		var sut = new DistributeMonthlyReliefBonusCommandService(fakePromotionServiceClient,
 			fakeTgsRepository,
 			fakeServiceProvider,
 			fakeBrandServiceClient,
-			NullLogger<DistributeWeeklyReliefBonusCommandService>.Instance);
+			NullLogger<DistributeMonthlyReliefBonusCommandService>.Instance);
 
 		var scheduleTime = DateTimeOffset.Parse("2022-12-11 16:00:00+00");
 
-		var command = new DistributeWeeklyReliefBonusCommand(scheduleTime.UtcDateTime);
+		var command = new DistributeMonthlyReliefBonusCommand(scheduleTime.UtcDateTime);
 
 		var promotionId = Guid.NewGuid();
 		var brandId = Guid.NewGuid();
@@ -370,7 +370,7 @@ public class DistributeWeeklyReliefBonusTests
 			}.ToAsyncEnumerable());
 
 		_ = fakePromotionServiceClient.ListPromotionsByPromotionTypeAsync(
-				Arg.Is("ReliefMoneyWeekly"))
+				Arg.Is("ReliefMoneyMonthly"))
 			.Returns(new[]
 			{
 				new PromotionMainInfo
@@ -414,7 +414,7 @@ public class DistributeWeeklyReliefBonusTests
 	}
 
 	[Test]
-	public async Task 輸入日期_發放每週反水_With_Negative_8_Of_Time_Zone_For_First_Week()
+	public async Task 輸入日期_發放每週救援金_With_Negative_8_Of_Time_Zone_For_First_Week()
 	{
 		// Arrange
 		var fakePromotionServiceClient = Substitute.For<IPromotionServiceClient>();
@@ -422,15 +422,15 @@ public class DistributeWeeklyReliefBonusTests
 		var fakeServiceProvider = Substitute.For<IServiceProvider>();
 		var fakeBrandServiceClient = Substitute.For<IBrandServiceClient>();
 
-		var sut = new DistributeWeeklyReliefBonusCommandService(fakePromotionServiceClient,
+		var sut = new DistributeMonthlyReliefBonusCommandService(fakePromotionServiceClient,
 			fakeTgsRepository,
 			fakeServiceProvider,
 			fakeBrandServiceClient,
-			NullLogger<DistributeWeeklyReliefBonusCommandService>.Instance);
+			NullLogger<DistributeMonthlyReliefBonusCommandService>.Instance);
 
 		var scheduleTime = DateTimeOffset.Parse("2022-12-05 00:00:00-08");
 
-		var command = new DistributeWeeklyReliefBonusCommand(scheduleTime.UtcDateTime);
+		var command = new DistributeMonthlyReliefBonusCommand(scheduleTime.UtcDateTime);
 
 		var promotionId = Guid.NewGuid();
 		var brandId = Guid.NewGuid();
@@ -460,7 +460,7 @@ public class DistributeWeeklyReliefBonusTests
 			.Returns(0m);
 
 		_ = fakePromotionServiceClient.ListPromotionsByPromotionTypeAsync(
-				Arg.Is("ReliefMoneyWeekly"))
+				Arg.Is("ReliefMoneyMonthly"))
 			.Returns(new[]
 			{
 				new PromotionMainInfo
@@ -499,7 +499,7 @@ public class DistributeWeeklyReliefBonusTests
 	}
 
 	[Test]
-	public async Task 輸入日期_發放每週反水_With_Negative_8_Of_Time_Zone_For_Last_Week()
+	public async Task 輸入日期_發放每週救援金_With_Negative_8_Of_Time_Zone_For_Last_Week()
 	{
 		// Arrange
 		var fakePromotionServiceClient = Substitute.For<IPromotionServiceClient>();
@@ -507,15 +507,15 @@ public class DistributeWeeklyReliefBonusTests
 		var fakeServiceProvider = Substitute.For<IServiceProvider>();
 		var fakeBrandServiceClient = Substitute.For<IBrandServiceClient>();
 
-		var sut = new DistributeWeeklyReliefBonusCommandService(fakePromotionServiceClient,
+		var sut = new DistributeMonthlyReliefBonusCommandService(fakePromotionServiceClient,
 			fakeTgsRepository,
 			fakeServiceProvider,
 			fakeBrandServiceClient,
-			NullLogger<DistributeWeeklyReliefBonusCommandService>.Instance);
+			NullLogger<DistributeMonthlyReliefBonusCommandService>.Instance);
 
 		var scheduleTime = DateTimeOffset.Parse("2023-01-02 00:00:00-08");
 
-		var command = new DistributeWeeklyReliefBonusCommand(scheduleTime.UtcDateTime);
+		var command = new DistributeMonthlyReliefBonusCommand(scheduleTime.UtcDateTime);
 
 		var promotionId = Guid.NewGuid();
 		var brandId = Guid.NewGuid();
@@ -547,7 +547,7 @@ public class DistributeWeeklyReliefBonusTests
 				Arg.Any<CancellationToken>())
 			.Returns(0m);
 
-		_ = fakePromotionServiceClient.ListPromotionsByPromotionTypeAsync(Arg.Is("ReliefMoneyWeekly"))
+		_ = fakePromotionServiceClient.ListPromotionsByPromotionTypeAsync(Arg.Is("ReliefMoneyMonthly"))
 			.Returns(new[]
 			{
 				new PromotionMainInfo
@@ -586,7 +586,7 @@ public class DistributeWeeklyReliefBonusTests
 	}
 
 	[Test]
-	public async Task 輸入日期_發放每週反水_With_Negative_8_Of_Time_Zone_For_Middle_Week()
+	public async Task 輸入日期_發放每週救援金_With_Negative_8_Of_Time_Zone_For_Middle_Week()
 	{
 		// Arrange
 		var fakePromotionServiceClient = Substitute.For<IPromotionServiceClient>();
@@ -594,15 +594,15 @@ public class DistributeWeeklyReliefBonusTests
 		var fakeServiceProvider = Substitute.For<IServiceProvider>();
 		var fakeBrandServiceClient = Substitute.For<IBrandServiceClient>();
 
-		var sut = new DistributeWeeklyReliefBonusCommandService(fakePromotionServiceClient,
+		var sut = new DistributeMonthlyReliefBonusCommandService(fakePromotionServiceClient,
 			fakeTgsRepository,
 			fakeServiceProvider,
 			fakeBrandServiceClient,
-			NullLogger<DistributeWeeklyReliefBonusCommandService>.Instance);
+			NullLogger<DistributeMonthlyReliefBonusCommandService>.Instance);
 
 		var scheduleTime = DateTimeOffset.Parse("2022-12-12 00:00:00-08");
 
-		var command = new DistributeWeeklyReliefBonusCommand(scheduleTime.UtcDateTime);
+		var command = new DistributeMonthlyReliefBonusCommand(scheduleTime.UtcDateTime);
 
 		var promotionId = Guid.NewGuid();
 		var brandId = Guid.NewGuid();
@@ -635,7 +635,7 @@ public class DistributeWeeklyReliefBonusTests
 			.Returns(0m);
 
 		_ = fakePromotionServiceClient.ListPromotionsByPromotionTypeAsync(
-				Arg.Is("ReliefMoneyWeekly"))
+				Arg.Is("ReliefMoneyMonthly"))
 			.Returns(new[]
 			{
 				new PromotionMainInfo
