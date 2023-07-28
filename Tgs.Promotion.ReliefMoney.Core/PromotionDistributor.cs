@@ -43,114 +43,111 @@ internal class PromotionDistributor
 
         var firstDate = new DateOnly(_startDate.Year, _startDate.Month, _startDate.Day);
 
-        var distributes = await tgsRepository.QueryPromotionReliefSettlementsAsync(
-                _promotionMainInfo.Id,
-                _startDate.UtcDateTime,
-                _endDate.AddDays(1).UtcDateTime,
-                cancellationToken)
-            .GroupBy(settle => settle.PlayerCode)
-            .SelectAwait(async g => new
-            {
-                DistributeFrom = _startDate,
-                DistributeTo = _endDate,
-                PlayerCode = g.Key,
-                _promotionMainInfo.BrandId,
-                PromotionId = _promotionMainInfo.Id,
-                Bonus = await g.SumAsync(g => g.Bonus, cancellationToken).ConfigureAwait(false),
-                TotalWinLoss = await g.SumAsync(
-                    s => s.TotalWinLoss, cancellationToken).ConfigureAwait(false),
-                (await g
-                    .FirstAsync(cancellationToken)
-                    .ConfigureAwait(false)).Settings
-            })
-            .Where(sum => sum.TotalWinLoss >= sum.Settings.TurnoverThreshold)
-            .Select(sum => new
-            {
-                sum.DistributeFrom,
-                sum.DistributeTo,
-                sum.PlayerCode,
-                sum.BrandId,
-                sum.PromotionId,
-                sum.TotalWinLoss,
-                sum.Settings,
-                CalculateBonus = sum.Bonus
-            })
-            .SelectAwait(async sum =>
-            {
-                var bonusAmount = sum.CalculateBonus > sum.Settings.BonusAmountLimit
-                    ? sum.Settings.BonusAmountLimit
-                    : sum.CalculateBonus;
+        var distributed = await tgsRepository.CheckHaveReliefDistributeAsync(_promotionMainInfo.Id, firstDate,
+            cancellationToken);
 
-                if (_promotionMainInfo.PromotionLimitAmount.HasValue
-                    && usedAmount > _promotionMainInfo.PromotionLimitAmount.Value)
-                {
-                    return new PromotionReliefDistribute(
-                        await _serialNumberGenerator.GenerateAsync(cancellationToken).ConfigureAwait(false),
-                        firstDate,
+        var distributes =
+            distributed
+                ? await tgsRepository.GetReliefUnDistributedAsync(_promotionMainInfo.Id, firstDate,
+                    cancellationToken)
+                : await tgsRepository.QueryPromotionReliefSettlementsAsync(
+                        _promotionMainInfo.Id,
+                        _startDate.UtcDateTime,
+                        _endDate.AddDays(1).UtcDateTime,
+                        cancellationToken)
+                    .GroupBy(settle => settle.PlayerCode)
+                    .SelectAwait(async g => new
+                    {
+                        DistributeFrom = _startDate,
+                        DistributeTo = _endDate,
+                        PlayerCode = g.Key,
+                        _promotionMainInfo.BrandId,
+                        PromotionId = _promotionMainInfo.Id,
+                        Bonus = await g.SumAsync(g => g.Bonus, cancellationToken).ConfigureAwait(false),
+                        TotalWinLoss = await g.SumAsync(
+                            s => s.TotalWinLoss, cancellationToken).ConfigureAwait(false),
+                        (await g
+                            .FirstAsync(cancellationToken)
+                            .ConfigureAwait(false)).Settings
+                    })
+                    .Where(sum => sum.TotalWinLoss >= sum.Settings.TurnoverThreshold)
+                    .Select(sum => new
+                    {
+                        sum.DistributeFrom,
+                        sum.DistributeTo,
                         sum.PlayerCode,
                         sum.BrandId,
-                        _promotionMainInfo.Id,
-                        0,
-                        0,
-                        sum.Settings);
-                }
+                        sum.PromotionId,
+                        sum.TotalWinLoss,
+                        sum.Settings,
+                        CalculateBonus = sum.Bonus
+                    })
+                    .SelectAwait(async sum =>
+                    {
+                        var bonusAmount = sum.CalculateBonus > sum.Settings.BonusAmountLimit
+                            ? sum.Settings.BonusAmountLimit
+                            : sum.CalculateBonus;
 
-                usedAmount += bonusAmount;
+                        if (_promotionMainInfo.PromotionLimitAmount.HasValue
+                            && usedAmount > _promotionMainInfo.PromotionLimitAmount.Value)
+                        {
+                            return new PromotionReliefDistribute(
+                                await _serialNumberGenerator.GenerateAsync(cancellationToken).ConfigureAwait(false),
+                                firstDate,
+                                sum.PlayerCode,
+                                sum.BrandId,
+                                _promotionMainInfo.Id,
+                                0,
+                                0,
+                                sum.Settings);
+                        }
 
-                return new PromotionReliefDistribute(
-                    await _serialNumberGenerator.GenerateAsync(cancellationToken).ConfigureAwait(false),
-                    firstDate,
-                    sum.PlayerCode,
-                    sum.BrandId,
-                    _promotionMainInfo.Id,
-                    bonusAmount,
-                    bonusAmount * sum.Settings.TurnoverMultiple,
-                    sum.Settings);
-            })
-            .ToArrayAsync(cancellationToken)
-            .ConfigureAwait(false);
+                        usedAmount += bonusAmount;
 
-        if (distributes.Length > 0)
+                        return new PromotionReliefDistribute(
+                            await _serialNumberGenerator.GenerateAsync(cancellationToken).ConfigureAwait(false),
+                            firstDate,
+                            sum.PlayerCode,
+                            sum.BrandId,
+                            _promotionMainInfo.Id,
+                            bonusAmount,
+                            bonusAmount * sum.Settings.TurnoverMultiple,
+                            sum.Settings);
+                    })
+                    .ToArrayAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+        if (distributes.Length > 0 && !distributed)
         {
-            if (!await tgsRepository.CheckHaveReliefDistributeAsync(_promotionMainInfo.Id, firstDate,
-                    cancellationToken))
-            {
-                await tgsRepository.SavePromotionReliefDistributesAsync(
-                    distributes,
-                    cancellationToken).ConfigureAwait(false);
-
-                await _promotionServiceClient.UpdatePromotionUsedAmountAsync(_promotionMainInfo.Id, usedAmount,
-                    distributes.Max(x => x.Id), cancellationToken);
-            }
-            else
-            {
-                distributes =
-                    await tgsRepository.GetReliefUnDistributedAsync(_promotionMainInfo.Id, firstDate,
-                        cancellationToken);
-            }
-
-            var conditionHash = new DateOnly(_startDate.Year, _startDate.Month, _startDate.Day).DayNumber;
-
-            var plan = await _promotionServiceClient.GetPromotionDistributePlanAsync(
-                _promotionMainInfo.Id,
-                conditionHash,
+            await tgsRepository.SavePromotionReliefDistributesAsync(
+                distributes,
                 cancellationToken).ConfigureAwait(false);
 
-            await foreach (var dist in distributes.ToAsyncEnumerable()
-                               .ConfigureAwait(false)
-                               .WithCancellation(cancellationToken))
-            {
-                var request = new BonusTransferRequest
-                {
-                    PlanId = plan.Id,
-                    DistributeId = dist.Id
-                };
+            await _promotionServiceClient.UpdatePromotionUsedAmountAsync(_promotionMainInfo.Id, usedAmount,
+                distributes.Max(x => x.Id), cancellationToken);
+        }
 
-                _ = await _messageSender.RequestAsync(
-                    "tgs.relief.ipc.payout",
-                    request.ToByteArray(),
-                    cancellationToken).ConfigureAwait(false);
-            }
+        var conditionHash = new DateOnly(_startDate.Year, _startDate.Month, _startDate.Day).DayNumber;
+
+        var plan = await _promotionServiceClient.GetPromotionDistributePlanAsync(
+            _promotionMainInfo.Id,
+            conditionHash,
+            cancellationToken).ConfigureAwait(false);
+
+        await foreach (var dist in distributes.ToAsyncEnumerable()
+                           .ConfigureAwait(false)
+                           .WithCancellation(cancellationToken))
+        {
+            var request = new BonusTransferRequest
+            {
+                PlanId = plan.Id,
+                DistributeId = dist.Id
+            };
+
+            _ = await _messageSender.RequestAsync(
+                "tgs.relief.ipc.payout",
+                request.ToByteArray(),
+                cancellationToken).ConfigureAwait(false);
         }
     }
 }

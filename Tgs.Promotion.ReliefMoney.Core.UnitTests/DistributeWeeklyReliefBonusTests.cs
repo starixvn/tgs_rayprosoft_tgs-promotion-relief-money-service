@@ -167,7 +167,7 @@ public class DistributeWeeklyReliefBonusTests
 			fakeBrandServiceClient,
 			NullLogger<DistributeWeeklyReliefBonusCommandService>.Instance);
 
-		var scheduleTime = DateTimeOffset.Parse("2022-12-05 00:00:00+08");
+		var scheduleTime = DateTimeOffset.Parse("2022-12-05 05:00:00+08");
 
 		var command = new DistributeWeeklyReliefBonusCommand(scheduleTime.UtcDateTime);
 
@@ -179,7 +179,7 @@ public class DistributeWeeklyReliefBonusTests
 		var firstDate = new DateOnly(startDate.Year, startDate.Month, startDate.Day);
 		var timeSpanMinutes = """
 			{
-				"16": 480,
+				"21": 480,
 				"17": 420
 			}
 			""";

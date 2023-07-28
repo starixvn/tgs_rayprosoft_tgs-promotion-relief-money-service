@@ -17,11 +17,13 @@ public class DailyDistributeBonusHandlerTests
 		// Arrange
 		var fakeDistributeService = Substitute.For<ICommandService<DistributeDailyReliefBonusCommand>>();
 		var fakeWeeklyDistributeService = Substitute.For<ICommandService<DistributeWeeklyReliefBonusCommand>>();
+        var fakeMonthlyDistributeService = Substitute.For<ICommandService<DistributeMonthlyReliefBonusCommand>>();
 
-		var sut = new DailyDistributeBonusHandler(
+        var sut = new DailyDistributeBonusHandler(
 			fakeDistributeService,
 			fakeWeeklyDistributeService,
-			NullLogger<DailyDistributeBonusHandler>.Instance);
+            fakeMonthlyDistributeService,
+            NullLogger<DailyDistributeBonusHandler>.Instance);
 
 		var date = DateTimeOffset.Parse("2022-12-8 16:00:00+00");
 

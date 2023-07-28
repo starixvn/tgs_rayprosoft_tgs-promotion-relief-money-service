@@ -392,8 +392,8 @@ public class PromotionDistributorTests
 			BrandId = Guid.NewGuid(),
 			PromotionLimitAmount = 1000M
 		};
-		var scheduleStartDate = DateTime.Parse("2022-12-7");
-		var scheduleEndDate = DateTime.Parse("2022-12-7");
+		var scheduleStartDate = DateTimeOffset.Parse("2022-12-7 00:00:00+08");
+		var scheduleEndDate = DateTimeOffset.Parse("2022-12-7 00:00:00+08");
 
 		var fakeSerialNumberGenerator = Substitute.For<ISerialNumberGenerator>();
 		var fakeMessageSender = Substitute.For<IMessageSender>();
@@ -416,9 +416,9 @@ public class PromotionDistributorTests
 			.Returns(Array.Empty<PromotionReliefDistribute>());
 
 		_ = fakeTgsRepository.QueryPromotionReliefSettlementsAsync(
-				Arg.Is(promotionMainInfo.Id),
-				Arg.Is(scheduleStartDate),
-				Arg.Is(scheduleEndDate.AddDays(1)))
+                Arg.Is(promotionMainInfo.Id),
+                Arg.Is(scheduleStartDate.UtcDateTime),
+                Arg.Is(scheduleEndDate.AddDays(1).UtcDateTime))
 			.Returns(new[] {
 				new PromotionReliefSettlement(
 					"test1",
@@ -430,7 +430,7 @@ public class PromotionDistributorTests
 					new ReliefSettings(
 						null,
 						null,
-						20000M,
+						10000M,
 						50000M,
 						10M,
 						10M,
@@ -442,9 +442,9 @@ public class PromotionDistributorTests
 		await sut.ProcessDistributesAsync(fakeTgsRepository);
 
 		// Assert
-		_ = fakeTgsRepository.Received(0)
+		_ = fakeTgsRepository.Received(1)
 			.SavePromotionReliefDistributesAsync(
-				Arg.Any<IEnumerable<PromotionReliefDistribute>>());
+				Arg.Is<IEnumerable<PromotionReliefDistribute>>(s => s.First().Bonus == 0));
 
 		_ = fakeTgsRepository.Received(0)
 			.GetReliefUnDistributedAsync(Arg.Any<Guid>(), Arg.Any<DateOnly>());
