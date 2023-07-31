@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>6a83e34c-cd04-49b7-97d4-5df81de1ec24</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileTag>pgtgs/promotion-relief-money-service</DockerfileTag>
+    <DockerfileBuildArguments>--build-arg "BuildConfiguration=$(Configuration)"</DockerfileBuildArguments>
   </PropertyGroup>
 
   <ItemGroup>
