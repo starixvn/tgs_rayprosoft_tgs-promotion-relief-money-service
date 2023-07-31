@@ -1,0 +1,19 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Tgs.Promotion.ReliefService.Protos";
+
+import "phoenix/protobuf/guid.proto";
+import "google/protobuf/timestamp.proto";
+
+message DailySettlementRequest {
+    google.protobuf.Timestamp settle_date_time = 1;
+}
+
+message ReliefDistributeRequest {
+    google.protobuf.Timestamp distribute_date_time = 1;
+}
+
+message BonusTransferRequest {
+	phoenix.protobuf.GuidValue plan_id = 1;
+    phoenix.protobuf.GuidValue distribute_id = 2;
+}

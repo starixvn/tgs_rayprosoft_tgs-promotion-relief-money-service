@@ -1,7 +1,17 @@
+include:
+  - project: rayprosoft/tgs-ci-scripts
+    ref: main
+    file: GitLab/Templates/gitlab-job-templates.yml
+
 variables:
   ImageName: pgtgs/promotion-relief-money-service
   TgsSettingKey: promotion-relief-money-service
   HelmTemplateFolderName: promotion-relief-money-service
+  BuildCacheKey: Tgs.ReliefMoney.$CI_PIPELINE_IID
+
+default:
+  before_script:
+    - export Tag="$(date -d $CI_PIPELINE_CREATED_AT +%Y%m%d%H%M).$CI_PIPELINE_IID"
 
 stages:
   - build
@@ -19,7 +29,7 @@ build-code:
     - merge_requests    
     - main
   cache:
-    key: ReliefMoney.$CI_PIPELINE_ID
+    key: BuildCacheKey
     untracked: true
 
 unit-test:
@@ -32,13 +42,32 @@ unit-test:
     - merge_requests
     - main
   cache:
-    key: ReliefMoney.$CI_PIPELINE_ID
+    key: BuildCacheKey
     untracked: true
     policy: pull
   artifacts:
     when: always
     reports:
       junit: ./TestReports/*-TestReport.xml
+
+push-nuget:
+  stage: publish
+  needs:
+    - job: build-code
+      artifacts: true
+    - unit-test
+  only:
+    - main
+  script:
+    - dotnet restore
+    - dotnet pack -c $BuildConfiguration "Tgs.Promotion.ReliefMoney.Client/Tgs.Promotion.ReliefMoney.Client.csproj" --no-restore
+    - dotnet nuget push "Tgs.Promotion.ReliefMoney.Client/bin/$BuildConfiguration/*.nupkg" -s "raypro-baget" -k $NugetApiKey --skip-duplicate
+  artifacts:
+    name: Nuget
+    untracked: false
+    expire_in: "30 days"
+    paths:
+      - Tgs.Promotion.ReliefMoney.Client/bin/$BuildConfiguration/*.nupkg
 
 push-docker-image:
   stage: publish
@@ -48,11 +77,10 @@ push-docker-image:
   only:
     - main
   script:
-    - export Tag="$(date -d $CI_PIPELINE_CREATED_AT +%Y%m%d%H%M).$CI_PIPELINE_IID"
     - dotnet build "Tgs.Promotion.ReliefMoney.Service/Tgs.Promotion.ReliefMoney.Service.csproj" -c $BuildConfiguration -t:ContainerBuild -p:DockerfileTag="$ImageName:$Tag" --no-restore
     - docker push $ImageName:$Tag
   cache:
-    key: ReliefMoney.$CI_PIPELINE_ID
+    key: BuildCacheKey
     untracked: true
     policy: pull
 
@@ -71,6 +99,8 @@ push-k8s-template:
         .image.repository = strenv(ImageName) |
         .image.tag = strenv(Tag)
       ' artifacts/k8s/$HelmTemplateFolderName/values.yaml
+    - cp deployment/k8s/daily_settlement_cronjob.yaml artifacts/k8s/
+    - cp deployment/k8s/distribute_cronjob.yaml artifacts/k8s/
   artifacts:
     name: HelmTemplate
     untracked: false
@@ -79,8 +109,9 @@ push-k8s-template:
       - artifacts/**/*
 
 deploy-dev:
+  extends: .deploy-template
   variables:
-    GIT_STRATEGY: none
+    kube_config: KubeConfig_Raypro_dev
     namespace: dev
   environment:
     name: dev
@@ -91,42 +122,15 @@ deploy-dev:
       artifacts: true
   only:
     - main
-  before_script:
-    - export KUBECONFIG=$KubeConfig_Raypro_dev
   script:
-    - export resources=$(kubectl get cm resources-setting -o jsonpath={.data.$TgsSettingKey})
-    - export dedicated=$(kubectl get cm tgs-settings -o jsonpath={.data.dedicated})
-    - export node_selector=$(kubectl get cm tgs-settings -o jsonpath={.data.node-selector})
-    - export autoscaling=$(kubectl get cm autoscaling-setting -o jsonpath={.data.$TgsSettingKey})
-    - |
-      cat << EOF | yq e -P | helm template artifacts/k8s/$HelmTemplateFolderName \
-        -n $namespace \
-        --name-template tgs \
-        -f - 
-      {
-        "nodeSelector": $node_selector,
-        "tolerations": [$dedicated],
-        "resources": $resources,
-        "autoscaling": $autoscaling
-      }
-      EOF
-    - |
-      cat << EOF | yq e -P | helm template artifacts/k8s/$HelmTemplateFolderName \
-        -n $namespace \
-        --name-template tgs \
-        -f - \
-        | kubectl -n $namespace apply -f -
-      {
-        "nodeSelector": $node_selector,
-        "tolerations": [$dedicated],
-        "resources": $resources,
-        "autoscaling": $autoscaling
-      }
-      EOF
+    - !reference [.deploy-template, script]
+    - kubectl -n $namespace apply -f artifacts/k8s/daily_settlement_cronjob.yaml
+    - kubectl -n $namespace apply -f artifacts/k8s/distribute_cronjob.yaml
 
 deploy-staging:
+  extends: .deploy-template
   variables:
-    GIT_STRATEGY: none
+    kube_config: KubeConfig_Raypro_staging
     namespace: staging
   environment:
     name: staging
@@ -138,42 +142,15 @@ deploy-staging:
   only:
     - main
   when: manual
-  before_script:
-    - export KUBECONFIG=$KubeConfig_Raypro_staging
   script:
-    - export resources=$(kubectl get cm resources-setting -o jsonpath={.data.$TgsSettingKey})
-    - export dedicated=$(kubectl get cm tgs-settings -o jsonpath={.data.dedicated})
-    - export node_selector=$(kubectl get cm tgs-settings -o jsonpath={.data.node-selector})
-    - export autoscaling=$(kubectl get cm autoscaling-setting -o jsonpath={.data.$TgsSettingKey})
-    - |
-      cat << EOF | yq e -P | helm template artifacts/k8s/$HelmTemplateFolderName \
-        -n $namespace \
-        --name-template tgs \
-        -f - 
-      {
-        "nodeSelector": $node_selector,
-        "tolerations": [$dedicated],
-        "resources": $resources,
-        "autoscaling": $autoscaling
-      }
-      EOF
-    - |
-      cat << EOF | yq e -P | helm template artifacts/k8s/$HelmTemplateFolderName \
-        -n $namespace \
-        --name-template tgs \
-        -f - \
-        | kubectl -n $namespace apply -f -
-      {
-        "nodeSelector": $node_selector,
-        "tolerations": [$dedicated],
-        "resources": $resources,
-        "autoscaling": $autoscaling
-      }
-      EOF
+    - !reference [.deploy-template, script]
+    - kubectl -n $namespace apply -f artifacts/k8s/daily_settlement_cronjob.yaml
+    - kubectl -n $namespace apply -f artifacts/k8s/distribute_cronjob.yaml
 
 deploy-prod:
+  extends: .deploy-template
   variables:
-    GIT_STRATEGY: none
+    kube_config: KubeConfig_Raypro_prod
     namespace: prod
   environment:
     name: prod
@@ -185,35 +162,7 @@ deploy-prod:
   only:
     - main
   when: manual
-  before_script:
-    - export KUBECONFIG=$KubeConfig_Raypro_prod
   script:
-    - export resources=$(kubectl get cm resources-setting -o jsonpath={.data.$TgsSettingKey})
-    - export dedicated=$(kubectl get cm tgs-settings -o jsonpath={.data.dedicated})
-    - export node_selector=$(kubectl get cm tgs-settings -o jsonpath={.data.node-selector})
-    - export autoscaling=$(kubectl get cm autoscaling-setting -o jsonpath={.data.$TgsSettingKey})
-    - |
-      cat << EOF | yq e -P | helm template artifacts/k8s/$HelmTemplateFolderName \
-        -n $namespace \
-        --name-template tgs \
-        -f - 
-      {
-        "nodeSelector": $node_selector,
-        "tolerations": [$dedicated],
-        "resources": $resources,
-        "autoscaling": $autoscaling
-      }
-      EOF
-    - |
-      cat << EOF | yq e -P | helm template artifacts/k8s/$HelmTemplateFolderName \
-        -n $namespace \
-        --name-template tgs \
-        -f - \
-        | kubectl -n $namespace apply -f -
-      {
-        "nodeSelector": $node_selector,
-        "tolerations": [$dedicated],
-        "resources": $resources,
-        "autoscaling": $autoscaling
-      }
-      EOF
+    - !reference [.deploy-template, script]
+    - kubectl -n $namespace apply -f artifacts/k8s/daily_settlement_cronjob.yaml
+    - kubectl -n $namespace apply -f artifacts/k8s/distribute_cronjob.yaml

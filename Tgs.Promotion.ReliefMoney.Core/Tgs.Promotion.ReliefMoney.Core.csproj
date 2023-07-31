@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Protos\messages.proto" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.23.4" />
+    <PackageReference Include="Grpc.Tools" Version="2.49.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Tgs.BrandCertificateClient" Version="0.0.27" />
+    <PackageReference Include="Tgs.MessageQueue" Version="2.3.0" />
+    <PackageReference Include="Tgs.Promotion.Client" Version="1.0.42" />
+    <PackageReference Include="Tgs.SerialNumberGenerator" Version="1.0.0" />
+    <PackageReference Include="TGS.ServiceUtility" Version="0.2.0" />
+    <PackageReference Include="PhoenixToolkits.Protobuf.ExtendTypes" Version="0.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\messages.proto" GrpcServices="None" />
+  </ItemGroup>
+
+</Project>
