@@ -64,10 +64,6 @@ spec:
               name: appsettings
               readOnly: true
               subPath: appsettings.json
-            - mountPath: /diag
-              name: diagvol
-            - mountPath: /dumps
-              name: dumpsvol
           livenessProbe:
             httpGet:
               path: /healthz
