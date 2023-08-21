@@ -81,67 +81,66 @@ internal class TgsRepository : ITgsRepository
             }).ToAsyncEnumerable();
 	}
 
-    public async IAsyncEnumerable<GameRoundStatistics> QueryGameRoundStatisticsFromRoundsAsync(DateTimeOffset reportDate, Guid brandId,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<GameRoundStatistics> QueryGameRoundStatisticsFromGameRoundAggregateAsync(DateTimeOffset reportDate, Guid brandId,
+        CancellationToken cancellationToken = default)
     {
         var (from, to) = (reportDate, reportDate.AddDays(1));
 
-        const string spName = @"
-WITH round_data
-     AS (SELECT r.player_code,
-                r.brand_id,
-                r.game_provider_id,
-                r.game_id,
-                Sum(win_loss) win_loss
-         FROM   bet.rounds r
-         WHERE  closed_on >= @from
-                AND closed_on < @to
-                AND r.brand_id = @brandId
-                AND reopened_on IS NULL
-         GROUP  BY 1,
-                   2,
-                   3,
-                   4)
+        var query = _dbContext.GameTypeRoundAggregates
+            .Where(x => x.BrandId == brandId)
+            .Where(x => x.From >= from.UtcDateTime
+                && x.From < to.UtcDateTime)
+            .GroupJoin(_dbContext.BrandGames,
+                aggregate => new
+                {
+                    aggregate.BrandId,
+                    aggregate.GameId
+                },
+                brandGame => new
+                {
+                    brandGame.BrandId,
+                    brandGame.GameId
+                },
+                (aggregate, brandGame) => new
+                {
+                    aggregate,
+                    brandGame
+                })
+            .SelectMany(x => x.brandGame.DefaultIfEmpty(),
+                (x, brandGame) => new
+                {
+                    x.aggregate,
+                    brandGame
+                })
+            .Where(x => x.brandGame == null || x.brandGame.Rebate)
+            .GroupBy(x => new
+            {
+                x.aggregate.BrandId,
+                x.aggregate.PlayerCode,
+                x.aggregate.GameType,
+                x.aggregate.GameProviderId,
+                x.aggregate.VipLevel
+            }, (player, list) => new
+            {
+                player.BrandId,
+                player.PlayerCode,
+                player.GameType,
+                player.VipLevel,
+                player.GameProviderId,
+                WinLoss = list.Sum(l => l.aggregate.WinLoss)
+            });
 
-SELECT r.player_code      PlayerCode,
-       r.brand_id         BrandId,
-       r.game_provider_id GameProviderId,
-       v.level            VipLevel,
-       g.type             GameType,
-       Sum(r.win_loss)    TotalWinLoss
-FROM   round_data r
-       JOIN dbo.games g
-              ON g.id = r.game_id
-       JOIN dbo.players p
-              ON p.player_code = r.player_code
-       JOIN dbo.vip_levels v
-              ON v.id = p.vip_id
-       LEFT JOIN dbo.brand_games b
-              ON r.brand_id = b.brand_id
-                 AND r.game_id = b.game_id
-WHERE  ( b IS NULL
-          OR b.rebate = true )
-GROUP  BY 1,
-          2,
-          3,
-          4,
-          5;";
-
-        var conn = _dbContext.Database.GetDbConnection();
-        var transaction = _dbContext.Database.CurrentTransaction?.GetDbTransaction();
-
-        foreach(var data in await conn.QueryAsync<GameRoundStatistics>(spName,
-                          new Dictionary<string, object>
-                          {
-                              { "brandId", brandId },
-                              { "from", from.UtcDateTime },
-                              { "to", to.UtcDateTime }
-                          }, transaction))
-        {
-            yield return data;
-        }
+        return query
+            .Select(row => new GameRoundStatistics
+            {
+                PlayerCode = row.PlayerCode,
+                VipLevel = row.VipLevel,
+                BrandId = row.BrandId,
+                GameProviderId = row.GameProviderId,
+                GameType = (GameType)row.GameType,
+                TotalWinLoss = row.WinLoss
+            }).ToAsyncEnumerable();
     }
-
 
     public async ValueTask SavePromotionReliefSettlementsAsync(DateTimeOffset reportDate,
 		IEnumerable<PromotionReliefSettlement> settlements, CancellationToken cancellationToken = default)

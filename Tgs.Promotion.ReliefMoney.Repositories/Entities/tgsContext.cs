@@ -17,6 +17,8 @@ public partial class tgsContext : DbContext
 
     public virtual DbSet<BrandGame> BrandGames { get; set; }
 
+    public virtual DbSet<GameTypeRoundAggregate> GameTypeRoundAggregates { get; set; }
+
     public virtual DbSet<PlayerGameRebateAggregate> PlayerGameRebateAggregates { get; set; }
 
     public virtual DbSet<PromotionParticipant> PromotionParticipants { get; set; }
@@ -35,6 +37,7 @@ public partial class tgsContext : DbContext
             .HasPostgresExtension("uuid-ossp");
 
             modelBuilder.ApplyConfiguration(new Configurations.BrandGameConfiguration());
+            modelBuilder.ApplyConfiguration(new Configurations.GameTypeRoundAggregateConfiguration());
             modelBuilder.ApplyConfiguration(new Configurations.PlayerGameRebateAggregateConfiguration());
             modelBuilder.ApplyConfiguration(new Configurations.PromotionParticipantConfiguration());
             modelBuilder.ApplyConfiguration(new Configurations.PromotionReliefDailyStatisticConfiguration());
