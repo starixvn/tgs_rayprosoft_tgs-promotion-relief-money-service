@@ -1,11 +1,5 @@
-﻿using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
-using System.Xml.Linq;
-using Dapper;
+﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.EntityFrameworkCore.Storage;
 using Tgs.Promotion.ReliefMoney.Core;
 using Tgs.Promotion.ReliefMoney.Repositories.Entities;
 using PromotionReliefDistribute = Tgs.Promotion.ReliefMoney.Core.PromotionReliefDistribute;
