@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Runtime.CompilerServices;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Tgs.BrandCertificate.Clients;
 using Tgs.Promotion.Clients;
@@ -59,43 +60,67 @@ internal class CalculateDailyReliefCommandService : ICommandService<CalculateDai
 			.GetBrandIdsByTimeSpanMinutesAsync(timeSpanMinutes!.Value, cancellationToken)
 			.ToArrayAsync(cancellationToken);
 
-		var statistics = await _tgsRepository
-			.QueryGameRoundStatisticsAsync(reportDate, brandIds, cancellationToken)
+        var statistics = await GetGameRoundStatisticsAsync(reportDate, brandIds, cancellationToken)
 			.Do(record => _logger.LogDebug("GameRound: {record}", record))
 			.ToLookupAsync(s => s.BrandId, cancellationToken)
 			.ConfigureAwait(false);
 
-		var promotions = await new[]
-			{
-				_promotionServiceClient
-					.ListPromotionsByPromotionTypeAsync("ReliefMoneyDaily", cancellationToken),
-				_promotionServiceClient
-					.ListPromotionsByPromotionTypeAsync("ReliefMoneyWeekly", cancellationToken),
+        var promotions = await new[]
+            {
+                _promotionServiceClient
+                    .ListPromotionsByPromotionTypeAsync("ReliefMoneyDaily", cancellationToken),
+                _promotionServiceClient
+                    .ListPromotionsByPromotionTypeAsync("ReliefMoneyWeekly", cancellationToken),
                 _promotionServiceClient
                     .ListPromotionsByPromotionTypeAsync("ReliefMoneyMonthly", cancellationToken)
             }.ToAsyncEnumerable()
-			.Merge()
-			.Do(info => _logger.LogDebug("Promotion: {info}", info))
-			.Where(x => x.EventDuring.From <= reportDate.UtcDateTime && x.EventDuring.To >= reportDate.UtcDateTime)
-			.Where(info => statistics.Contains(info.BrandId))
-			.Do(info => _logger.LogDebug("Match Promotion: {info}", info))
-			.ToArrayAsync(cancellationToken)
-			.ConfigureAwait(false);
+            .Merge()
+            .Do(info => _logger.LogDebug("Promotion: {info}", info))
+            .Where(x => x.EventDuring.From <= reportDate.UtcDateTime && x.EventDuring.To >= reportDate.UtcDateTime)
+            .Where(info => statistics.Contains(info.BrandId))
+            .Do(info => _logger.LogDebug("Match Promotion: {info}", info))
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
 
-		var playerJoinList = await _tgsRepository
-			.QueryPromotionJoinPlayersAsync(promotions.Select(p => p.Id), cancellationToken)
-			.ToLookupAsync(j => j.PromotionId, cancellationToken)
-			.ConfigureAwait(false);
+        var playerJoinList = await _tgsRepository
+            .QueryPromotionJoinPlayersAsync(promotions.Select(p => p.Id), cancellationToken)
+            .ToLookupAsync(j => j.PromotionId, cancellationToken)
+            .ConfigureAwait(false);
 
-		var settlements = promotions.ToAsyncEnumerable()
-			.Select(info => new PromotionCounter(
-				info,
-				_promotionServiceClient,
-				playerJoinList[info.Id].Select(j => j.PlayerCode)))
-			.Do(counter => counter.InitialAsync(cancellationToken))
-			.SelectMany(counter => counter.ProcessBatchAsync(statistics[counter.BrandId], cancellationToken));
+        var settlements = promotions.ToAsyncEnumerable()
+            .Select(info => new PromotionCounter(
+                info,
+                _promotionServiceClient,
+                playerJoinList[info.Id].Select(j => j.PlayerCode)))
+            .Do(counter => counter.InitialAsync(cancellationToken))
+            .SelectMany(counter => counter.ProcessBatchAsync(statistics[counter.BrandId], cancellationToken));
 
-		await _tgsRepository.SavePromotionReliefSettlementsAsync(reportDate, settlements.ToEnumerable(),
-			cancellationToken).ConfigureAwait(false);
-	}
+        await _tgsRepository.SavePromotionReliefSettlementsAsync(reportDate, settlements.ToEnumerable(),
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private async IAsyncEnumerable<GameRoundStatistics> GetGameRoundStatisticsAsync(DateTimeOffset reportDate, Guid[] brandIds, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var useGameTypeRoundQuery = reportDate.Offset.TotalHours % 1 != 0;
+
+        if (useGameTypeRoundQuery)
+        {
+            foreach (var brandId in brandIds)
+            {
+                await foreach (var gameRoundStatistics in _tgsRepository
+                                   .QueryGameRoundStatisticsFromGameRoundAggregateAsync(reportDate, brandId, cancellationToken))
+                {
+                    yield return gameRoundStatistics;
+                }
+            }
+        }
+        else
+        {
+            await foreach (var gameRoundStatistics in _tgsRepository
+                               .QueryGameRoundStatisticsAsync(reportDate, brandIds, cancellationToken))
+            {
+                yield return gameRoundStatistics;
+            }
+        }
+    }
 }

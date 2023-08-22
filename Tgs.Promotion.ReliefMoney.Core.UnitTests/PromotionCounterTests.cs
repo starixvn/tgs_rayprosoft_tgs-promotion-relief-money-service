@@ -86,22 +86,23 @@ public class PromotionCounterTests
 
 		var statistics = new[]
 		{
-			new GameRoundStatistics(
-				"test1",
-				1,
-				promotionMainInfo.BrandId,
-				Guid.NewGuid(),
-				GameType.Sportsbook,
-				100M,
-				DateOnly.Parse("2022-11-29")),
-			new GameRoundStatistics(
-				"test2",
-				1,
-				Guid.NewGuid(),
-				Guid.NewGuid(),
-				GameType.Sportsbook,
-				100M,
-				DateOnly.Parse("2022-11-29"))
+			new GameRoundStatistics{
+				PlayerCode = "test1",
+                VipLevel = 1,
+                BrandId = promotionMainInfo.BrandId,
+                GameProviderId = Guid.NewGuid(),
+                GameType = GameType.Sportsbook,
+                TotalWinLoss = 100M
+
+            },
+			new GameRoundStatistics{
+                PlayerCode = "test2",
+                VipLevel = 1,
+                BrandId = Guid.NewGuid(),
+                GameProviderId = Guid.NewGuid(),
+                GameType = GameType.Sportsbook,
+                TotalWinLoss = 100M
+            }
 		};
 
 		// Act
@@ -147,22 +148,24 @@ public class PromotionCounterTests
 
 		var statistics = new[]
 		{
-			new GameRoundStatistics(
-				"test1",
-				1,
-				promotionMainInfo.BrandId,
-				Guid.NewGuid(),
-				GameType.Sportsbook,
-				100M,
-				DateOnly.Parse("2022-11-29")),
-			new GameRoundStatistics(
-				"test2",
-				1,
-				promotionMainInfo.BrandId,
-				Guid.NewGuid(),
-				GameType.Sportsbook,
-				100M,
-				DateOnly.Parse("2022-11-29"))
+			new GameRoundStatistics
+            {
+                PlayerCode = "test1",
+                VipLevel = 1,
+                BrandId = promotionMainInfo.BrandId,
+                GameProviderId = Guid.NewGuid(),
+                GameType = GameType.Sportsbook,
+                TotalWinLoss = 100M
+            },
+			new GameRoundStatistics
+            {
+                PlayerCode = "test2",
+                VipLevel = 1,
+                BrandId = promotionMainInfo.BrandId,
+                GameProviderId = Guid.NewGuid(),
+                GameType = GameType.Sportsbook,
+                TotalWinLoss = 100M
+            }
 		};
 
 		// Act
@@ -209,22 +212,24 @@ public class PromotionCounterTests
 
 		var statistics = new[]
 		{
-			new GameRoundStatistics(
-				"test1",
-				1,
-				promotionMainInfo.BrandId,
-				Guid.NewGuid(),
-				GameType.Sportsbook,
-				100M,
-				DateOnly.Parse("2022-11-29")),
-			new GameRoundStatistics(
-				"test2",
-				1,
-				promotionMainInfo.BrandId,
-				Guid.NewGuid(),
-				GameType.Slot,
-				100M,
-				DateOnly.Parse("2022-11-29"))
+			new GameRoundStatistics
+            {
+                PlayerCode = "test1",
+                VipLevel = 1,
+                BrandId = promotionMainInfo.BrandId,
+                GameProviderId = Guid.NewGuid(),
+                GameType = GameType.Sportsbook,
+                TotalWinLoss = 100M
+            },
+			new GameRoundStatistics
+            {
+                PlayerCode = "test2",
+                VipLevel = 1,
+                BrandId = promotionMainInfo.BrandId,
+                GameProviderId = Guid.NewGuid(),
+                GameType = GameType.Slot,
+                TotalWinLoss = 100M
+            }
 		};
 
 		// Act
@@ -273,22 +278,24 @@ public class PromotionCounterTests
 
 		var statistics = new[]
 		{
-			new GameRoundStatistics(
-				"test1",
-				1,
-				promotionMainInfo.BrandId,
-				targetGpId,
-				GameType.Slot,
-				100M,
-				DateOnly.Parse("2022-11-29")),
-			new GameRoundStatistics(
-				"test2",
-				1,
-				promotionMainInfo.BrandId,
-				Guid.NewGuid(),
-				GameType.Slot,
-				100M,
-				DateOnly.Parse("2022-11-29"))
+			new GameRoundStatistics
+            {
+                PlayerCode = "test1",
+                VipLevel = 1,
+                BrandId = promotionMainInfo.BrandId,
+                GameProviderId = targetGpId,
+                GameType = GameType.Slot,
+                TotalWinLoss = 100M
+            },
+			new GameRoundStatistics
+            {
+                PlayerCode = "test2",
+                VipLevel = 1,
+                BrandId = promotionMainInfo.BrandId,
+                GameProviderId = Guid.NewGuid(),
+                GameType = GameType.Slot,
+                TotalWinLoss = 100M
+            }
 		};
 
 		// Act
@@ -336,22 +343,24 @@ public class PromotionCounterTests
 
 		var statistics = new[]
 		{
-			new GameRoundStatistics(
-				"test1",
-				1,
-				promotionMainInfo.BrandId,
-				targetGpId,
-				GameType.Slot,
-				100M,
-				DateOnly.Parse("2022-11-29")),
-			new GameRoundStatistics(
-				"test1",
-				1,
-				promotionMainInfo.BrandId,
-				Guid.NewGuid(),
-				GameType.Slot,
-				100M,
-				DateOnly.Parse("2022-11-29"))
+            new GameRoundStatistics
+            {
+                PlayerCode = "test1",
+                VipLevel = 1,
+                BrandId = promotionMainInfo.BrandId,
+                GameProviderId = targetGpId,
+                GameType = GameType.Slot,
+                TotalWinLoss = 100M
+            },
+            new GameRoundStatistics
+            {
+                PlayerCode = "test1",
+                VipLevel = 1,
+                BrandId = promotionMainInfo.BrandId,
+                GameProviderId = Guid.NewGuid(),
+                GameType = GameType.Slot,
+                TotalWinLoss = 100M
+            }
 		};
 
 		var expectedBonus = 100M * 10M / 100M;
