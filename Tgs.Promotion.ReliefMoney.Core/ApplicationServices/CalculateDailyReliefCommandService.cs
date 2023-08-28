@@ -9,61 +9,61 @@ namespace Tgs.Promotion.ReliefMoney.Core.ApplicationServices;
 
 internal class CalculateDailyReliefCommandService : ICommandService<CalculateDailyReliefCommand>
 {
-	private readonly IBrandServiceClient _brandServiceClient;
-	private readonly ILogger<CalculateDailyReliefCommandService> _logger;
-	private readonly IPromotionServiceClient _promotionServiceClient;
-	private readonly ITgsRepository _tgsRepository;
+    private readonly IBrandServiceClient _brandServiceClient;
+    private readonly ILogger<CalculateDailyReliefCommandService> _logger;
+    private readonly IPromotionServiceClient _promotionServiceClient;
+    private readonly ITgsRepository _tgsRepository;
 
-	public CalculateDailyReliefCommandService(
-		ITgsRepository tgsRepository,
-		IPromotionServiceClient promotionServiceClient,
-		IBrandServiceClient brandServiceClient,
-		ILogger<CalculateDailyReliefCommandService> logger)
-	{
-		_tgsRepository = tgsRepository ?? throw new ArgumentNullException(nameof(tgsRepository));
-		_promotionServiceClient =
-			promotionServiceClient ?? throw new ArgumentNullException(nameof(promotionServiceClient));
-		_brandServiceClient = brandServiceClient ?? throw new ArgumentNullException(nameof(brandServiceClient));
-		_logger = logger ?? throw new ArgumentNullException(nameof(logger));
-	}
+    public CalculateDailyReliefCommandService(
+        ITgsRepository tgsRepository,
+        IPromotionServiceClient promotionServiceClient,
+        IBrandServiceClient brandServiceClient,
+        ILogger<CalculateDailyReliefCommandService> logger)
+    {
+        _tgsRepository = tgsRepository ?? throw new ArgumentNullException(nameof(tgsRepository));
+        _promotionServiceClient =
+            promotionServiceClient ?? throw new ArgumentNullException(nameof(promotionServiceClient));
+        _brandServiceClient = brandServiceClient ?? throw new ArgumentNullException(nameof(brandServiceClient));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
 
-	public async ValueTask ExecuteAsync(CalculateDailyReliefCommand command,
-		CancellationToken cancellationToken = default)
-	{
-		var hour = command.SettleDateTime.Hour;
+    public async ValueTask ExecuteAsync(CalculateDailyReliefCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var hour = command.SettleDateTime.Hour;
 
-		var value = await _tgsRepository.GetTimeSpanMinutesAsync("PromotionDailySettleMinutes", cancellationToken);
+        var value = await _tgsRepository.GetTimeSpanMinutesAsync("PromotionDailySettleMinutes", cancellationToken);
 
-		if (value == null)
-		{
-			_logger.LogError(@"Settings key ""PromotionDailySettleMinutes"" is null.");
+        if (value == null)
+        {
+            _logger.LogError(@"Settings key ""PromotionDailySettleMinutes"" is null.");
 
-			return;
-		}
+            return;
+        }
 
-		var timeSpanMinutesJson = JsonSerializer.Deserialize<Dictionary<int, int?>>(value);
+        var timeSpanMinutesJson = JsonSerializer.Deserialize<Dictionary<int, int?>>(value);
 
-		if (timeSpanMinutesJson?.TryGetValue(hour, out var timeSpanMinutes) == null || timeSpanMinutes == null)
-		{
-			_logger.LogInformation("Can't found the timeSpanMinutes value from json. (PromotionDailySettleMinutes)");
+        if (timeSpanMinutesJson?.TryGetValue(hour, out var timeSpanMinutes) == null || timeSpanMinutes == null)
+        {
+            _logger.LogInformation("Can't found the timeSpanMinutes value from json. (PromotionDailySettleMinutes)");
 
-			return;
-		}
+            return;
+        }
 
-		var reportDateTime = new DateTimeOffset(command.SettleDateTime)
-			.ToOffset(TimeSpan.FromMinutes(timeSpanMinutes!.Value)).AddDays(-1);
+        var reportDateTime = new DateTimeOffset(command.SettleDateTime)
+            .ToOffset(TimeSpan.FromMinutes(timeSpanMinutes!.Value)).AddDays(-1);
 
         var reportDate = new DateTimeOffset(reportDateTime.Year, reportDateTime.Month, reportDateTime.Day, 0, 0,
             0, reportDateTime.Offset);
 
         var brandIds = await _brandServiceClient
-			.GetBrandIdsByTimeSpanMinutesAsync(timeSpanMinutes!.Value, cancellationToken)
-			.ToArrayAsync(cancellationToken);
+            .GetBrandIdsByTimeSpanMinutesAsync(timeSpanMinutes!.Value, cancellationToken)
+            .ToArrayAsync(cancellationToken);
 
         var statistics = await GetGameRoundStatisticsAsync(reportDate, brandIds, cancellationToken)
-			.Do(record => _logger.LogDebug("GameRound: {record}", record))
-			.ToLookupAsync(s => s.BrandId, cancellationToken)
-			.ConfigureAwait(false);
+            .Do(record => _logger.LogDebug("GameRound: {record}", record))
+            .ToLookupAsync(s => s.BrandId, cancellationToken)
+            .ConfigureAwait(false);
 
         var promotions = await new[]
             {
@@ -83,7 +83,7 @@ internal class CalculateDailyReliefCommandService : ICommandService<CalculateDai
             .ConfigureAwait(false);
 
         var playerJoinList = await _tgsRepository
-            .QueryPromotionJoinPlayersAsync(promotions.Select(p => p.Id), cancellationToken)
+            .QueryPromotionJoinPlayersAsync(promotions.Select(p => p.Id), reportDate.AddDays(1).UtcDateTime, cancellationToken)
             .ToLookupAsync(j => j.PromotionId, cancellationToken)
             .ConfigureAwait(false);
 
@@ -99,7 +99,8 @@ internal class CalculateDailyReliefCommandService : ICommandService<CalculateDai
             cancellationToken).ConfigureAwait(false);
     }
 
-    private async IAsyncEnumerable<GameRoundStatistics> GetGameRoundStatisticsAsync(DateTimeOffset reportDate, Guid[] brandIds, [EnumeratorCancellation] CancellationToken cancellationToken)
+    private async IAsyncEnumerable<GameRoundStatistics> GetGameRoundStatisticsAsync(DateTimeOffset reportDate,
+        Guid[] brandIds, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var useGameTypeRoundQuery = reportDate.Offset.TotalHours % 1 != 0;
 
@@ -108,7 +109,8 @@ internal class CalculateDailyReliefCommandService : ICommandService<CalculateDai
             foreach (var brandId in brandIds)
             {
                 await foreach (var gameRoundStatistics in _tgsRepository
-                                   .QueryGameRoundStatisticsFromGameRoundAggregateAsync(reportDate, brandId, cancellationToken))
+                                   .QueryGameRoundStatisticsFromGameRoundAggregateAsync(reportDate, brandId,
+                                       cancellationToken))
                 {
                     yield return gameRoundStatistics;
                 }
