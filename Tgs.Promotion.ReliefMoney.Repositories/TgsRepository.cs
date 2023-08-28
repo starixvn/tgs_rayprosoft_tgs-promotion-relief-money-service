@@ -179,12 +179,14 @@ internal class TgsRepository : ITgsRepository
 			.AnyAsync(x =>
 				x.PromotionId == promotionId && x.DistributeDate == date, cancellationToken: cancellationToken);
 
-	public IAsyncEnumerable<PlayerJoinRecord> QueryPromotionJoinPlayersAsync(IEnumerable<Guid> promotions, CancellationToken cancellationToken = default)
+	public IAsyncEnumerable<PlayerJoinRecord> QueryPromotionJoinPlayersAsync(IEnumerable<Guid> promotions,
+        DateTime settleEndDate, CancellationToken cancellationToken = default)
 	{
 		var queryPromotions = promotions.ToArray();
 
 		return _dbContext.PromotionParticipants
-			.Where(joinPlayer => queryPromotions.Contains(joinPlayer.PromotionId))
+            .Where(x => x.CreatedOn <= settleEndDate)
+            .Where(joinPlayer => queryPromotions.Contains(joinPlayer.PromotionId))
 			.Select(joinPlayer => new PlayerJoinRecord(joinPlayer.PromotionId, joinPlayer.PlayerCode!))
 			.ToAsyncEnumerable();
 	}
