@@ -191,7 +191,8 @@ public class PromotionDistributorTests
 
         var fakeTgsRepository = Substitute.For<ITgsRepository>();
 
-        _ = fakePromotionServiceClient.GetPromotionDistributePlanAsync(Arg.Any<Guid>(), Arg.Any<long>()).Returns(new PromotionDistributePlanInfo(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 123));
+        _ = fakePromotionServiceClient.GetPromotionDistributePlanAsync(Arg.Any<Guid>(), Arg.Any<long>())
+            .Returns(new PromotionDistributePlanInfo(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 123));
 
         _ = fakeTgsRepository.QueryPromotionReliefSettlementsAsync(
             Arg.Is(promotionMainInfo.Id),
@@ -267,7 +268,8 @@ public class PromotionDistributorTests
 
         var fakeTgsRepository = Substitute.For<ITgsRepository>();
 
-        _ = fakePromotionServiceClient.GetPromotionDistributePlanAsync(Arg.Any<Guid>(), Arg.Any<long>()).Returns(new PromotionDistributePlanInfo(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 123));
+        _ = fakePromotionServiceClient.GetPromotionDistributePlanAsync(Arg.Any<Guid>(), Arg.Any<long>())
+            .Returns(new PromotionDistributePlanInfo(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 123));
 
         _ = fakeTgsRepository.QueryPromotionReliefSettlementsAsync(
             Arg.Is(promotionMainInfo.Id),

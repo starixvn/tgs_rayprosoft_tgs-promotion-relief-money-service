@@ -84,13 +84,13 @@ internal class DistributeDailyReliefBonusCommandService : ICommandService<Distri
             .ConfigureAwait(false);
 
         var distributors = promotions
-			.Select(promotion =>
-				ActivatorUtilities.CreateInstance<PromotionDistributor>(
-					_serviceProvider,
-					promotion.MainInfo,
+            .Select(promotion =>
+                ActivatorUtilities.CreateInstance<PromotionDistributor>(
+                    _serviceProvider,
+                    promotion.MainInfo,
                     scheduleDate,
                     scheduleDate,
-					promotion.UsedAmount,
+                    promotion.UsedAmount,
                     playerJoinList[promotion.MainInfo.Id].Select(j => j.PlayerCode)));
 
 		await foreach (var distributor in distributors

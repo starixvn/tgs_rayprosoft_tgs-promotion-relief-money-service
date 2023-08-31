@@ -99,13 +99,13 @@ internal class DistributeMonthlyReliefBonusCommandService : ICommandService<Dist
             .ConfigureAwait(false);
 
         var distributors = promotions
-			.Select(p => 
-				ActivatorUtilities.CreateInstance<PromotionDistributor>(
-					_serviceProvider,
-					p.MainInfo,
-					p.PreviousTriggerDate,
-					p.NextTriggerDate,
-					p.UsedAmount,
+            .Select(p =>
+                ActivatorUtilities.CreateInstance<PromotionDistributor>(
+                    _serviceProvider,
+                    p.MainInfo,
+                    p.PreviousTriggerDate,
+                    p.NextTriggerDate,
+                    p.UsedAmount,
                     playerJoinList[p.MainInfo.Id].Select(j => j.PlayerCode)));
 
 		await foreach (var distributor in distributors
