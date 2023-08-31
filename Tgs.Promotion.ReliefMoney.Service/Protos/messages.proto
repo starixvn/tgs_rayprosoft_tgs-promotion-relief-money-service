@@ -17,3 +17,8 @@ message BonusTransferRequest {
 	phoenix.protobuf.GuidValue plan_id = 1;
     phoenix.protobuf.GuidValue distribute_id = 2;
 }
+
+message SupplementDailySettlementRequest {
+    google.protobuf.Timestamp settle_date_time = 1;
+	string promotion_type = 2;
+}

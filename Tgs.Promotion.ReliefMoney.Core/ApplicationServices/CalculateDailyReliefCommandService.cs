@@ -82,16 +82,10 @@ internal class CalculateDailyReliefCommandService : ICommandService<CalculateDai
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var playerJoinList = await _tgsRepository
-            .QueryPromotionJoinPlayersAsync(promotions.Select(p => p.Id), reportDate.AddDays(1).UtcDateTime, cancellationToken)
-            .ToLookupAsync(j => j.PromotionId, cancellationToken)
-            .ConfigureAwait(false);
-
         var settlements = promotions.ToAsyncEnumerable()
             .Select(info => new PromotionCounter(
                 info,
-                _promotionServiceClient,
-                playerJoinList[info.Id].Select(j => j.PlayerCode)))
+                _promotionServiceClient))
             .Do(counter => counter.InitialAsync(cancellationToken))
             .SelectMany(counter => counter.ProcessBatchAsync(statistics[counter.BrandId], cancellationToken));
 

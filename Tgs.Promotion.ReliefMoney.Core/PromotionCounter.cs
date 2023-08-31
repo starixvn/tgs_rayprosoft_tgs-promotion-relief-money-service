@@ -4,7 +4,6 @@ namespace Tgs.Promotion.ReliefMoney.Core;
 
 internal class PromotionCounter
 {
-    private readonly HashSet<string> _joinPlayers;
     private readonly PromotionMainInfo _promotionMainInfo;
     private readonly IPromotionServiceClient _promotionServiceClient;
     private int _gameProviderIdCount;
@@ -14,12 +13,10 @@ internal class PromotionCounter
 
     public PromotionCounter(
         PromotionMainInfo promotionMainInfo,
-        IPromotionServiceClient promotionServiceClient,
-        IEnumerable<string> joinPlayers)
+        IPromotionServiceClient promotionServiceClient)
     {
         _promotionMainInfo = promotionMainInfo ?? throw new ArgumentNullException(nameof(promotionMainInfo));
         _promotionServiceClient = promotionServiceClient ?? throw new ArgumentNullException(nameof(promotionServiceClient));
-        _joinPlayers = joinPlayers.ToHashSet();
     }
 
     public async Task InitialAsync(CancellationToken cancellationToken = default)
@@ -46,8 +43,6 @@ internal class PromotionCounter
         CancellationToken cancellationToken = default)
         => (from gameRound in statistics
             where gameRound.BrandId == BrandId
-            where _reliefSettings.DefaultJoin
-                || _joinPlayers.Contains(gameRound.PlayerCode)
             where _reliefSettings.VipLevels.Contains(gameRound.VipLevel)
             where _reliefSettings.GameType is null
                 || gameRound.GameType == _reliefSettings.GameType

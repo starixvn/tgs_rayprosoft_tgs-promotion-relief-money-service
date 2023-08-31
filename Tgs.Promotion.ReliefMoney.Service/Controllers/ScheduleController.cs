@@ -86,4 +86,26 @@ public class ScheduleController : ControllerBase
 			request.ToByteArray(),
 			HttpContext.RequestAborted).ConfigureAwait(false);
 	}
+
+    [HttpPost("supplement/{reportDate}/{utcHour}/{promotionType}", Name = "SupplementDailySettlementByDate")]
+    [SuccessStatusCode(202)]
+    public async ValueTask SupplementDailySettlementAsync(
+        [FromServices] IMessageSender messageSender,
+        DateOnly reportDate,
+        int utcHour,
+        string promotionType)
+    {
+        var reportDateTime = new DateTimeOffset(reportDate.Year, reportDate.Month, reportDate.Day, utcHour, 0, 0, TimeSpan.Zero);
+
+        var request = new SupplementDailySettlementRequest
+        {
+            SettleDateTime = Timestamp.FromDateTime(reportDateTime.UtcDateTime),
+            PromotionType = promotionType
+        };
+
+        await messageSender.PublishAsync(
+            "tgs.relief.ipc.supplement-daily-settle",
+            request.ToByteArray(),
+            HttpContext.RequestAborted).ConfigureAwait(false);
+    }
 }
