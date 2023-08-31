@@ -64,8 +64,7 @@ public class PromotionCounterTests
 
 		var sut = new PromotionCounter(
 			promotionMainInfo,
-			fakePromotionServiceClient,
-			Array.Empty<string>());
+			fakePromotionServiceClient);
 
 		fakePromotionServiceClient
 			.WhenCallGetPromotionRuleAsync(promotionMainInfo.Id)
@@ -112,69 +111,6 @@ public class PromotionCounterTests
 		Assert.IsTrue(actual.Length == 1);
 	}
 
-	[Test]
-	public async Task 處理活動救援金_如果不是預設參加_會使用參加名單過濾()
-	{
-		// Arrange
-		var promotionMainInfo = new PromotionMainInfo
-		{
-			Id = Guid.NewGuid(),
-			BrandId = Guid.NewGuid()
-		};
-
-		var fakePromotionServiceClient = Substitute.For<IPromotionServiceClient>();
-
-		var sut = new PromotionCounter(
-			promotionMainInfo,
-			fakePromotionServiceClient,
-			new[] { "test1" });
-
-		fakePromotionServiceClient
-			.WhenCallGetPromotionRuleAsync(promotionMainInfo.Id)
-			.ReturnRuleJson("""
-				{
-					"campaignDetail": {
-						"percentage": 10,
-						"gameProviderIds": [],
-						"bonusAmountLimit": 20,
-						"turnoverMultiple": 30,
-						"defaultJoin": false
-					},				
-					"vipLevels": [1]
-				}
-				""");
-
-		await sut.InitialAsync();
-
-		var statistics = new[]
-		{
-			new GameRoundStatistics
-            {
-                PlayerCode = "test1",
-                VipLevel = 1,
-                BrandId = promotionMainInfo.BrandId,
-                GameProviderId = Guid.NewGuid(),
-                GameType = GameType.Sportsbook,
-                TotalWinLoss = 100M
-            },
-			new GameRoundStatistics
-            {
-                PlayerCode = "test2",
-                VipLevel = 1,
-                BrandId = promotionMainInfo.BrandId,
-                GameProviderId = Guid.NewGuid(),
-                GameType = GameType.Sportsbook,
-                TotalWinLoss = 100M
-            }
-		};
-
-		// Act
-		var actual = await sut.ProcessBatchAsync(statistics).ToArrayAsync();
-
-        // Assert
-        Assert.IsTrue(actual.Length == 1);
-	}
-
     [Test]
 	public async Task 處理活動救援金_如果GameType有值_沒有特別選定GP_會依照GameType過濾()
 	{
@@ -189,8 +125,7 @@ public class PromotionCounterTests
 
 		var sut = new PromotionCounter(
 			promotionMainInfo,
-			fakePromotionServiceClient,
-			Array.Empty<string>());
+			fakePromotionServiceClient);
 
 		fakePromotionServiceClient
 			.WhenCallGetPromotionRuleAsync(promotionMainInfo.Id)
@@ -255,8 +190,7 @@ public class PromotionCounterTests
 
 		var sut = new PromotionCounter(
 			promotionMainInfo,
-			fakePromotionServiceClient,
-			Array.Empty<string>());
+			fakePromotionServiceClient);
 
 		fakePromotionServiceClient
 			.WhenCallGetPromotionRuleAsync(promotionMainInfo.Id)
@@ -320,8 +254,7 @@ public class PromotionCounterTests
 
 		var sut = new PromotionCounter(
 			promotionMainInfo,
-			fakePromotionServiceClient,
-			Array.Empty<string>());
+			fakePromotionServiceClient);
 
 		fakePromotionServiceClient
 			.WhenCallGetPromotionRuleAsync(promotionMainInfo.Id)

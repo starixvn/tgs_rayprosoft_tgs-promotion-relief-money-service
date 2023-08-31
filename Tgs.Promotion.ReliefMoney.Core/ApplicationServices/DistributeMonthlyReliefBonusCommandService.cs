@@ -93,14 +93,20 @@ internal class DistributeMonthlyReliefBonusCommandService : ICommandService<Dist
 			.ToArrayAsync(cancellationToken)
 			.ConfigureAwait(false);
 
-		var distributors = promotions
-			.Select(p => 
-				ActivatorUtilities.CreateInstance<PromotionDistributor>(
-					_serviceProvider,
-					p.MainInfo,
-					p.PreviousTriggerDate,
-					p.NextTriggerDate,
-					p.UsedAmount));
+        var playerJoinList = await _tgsRepository
+            .QueryPromotionJoinPlayersAsync(promotions.Select(p => p.MainInfo.Id), monthTo.AddDays(1).UtcDateTime, cancellationToken)
+            .ToLookupAsync(j => j.PromotionId, cancellationToken)
+            .ConfigureAwait(false);
+
+        var distributors = promotions
+            .Select(p =>
+                ActivatorUtilities.CreateInstance<PromotionDistributor>(
+                    _serviceProvider,
+                    p.MainInfo,
+                    p.PreviousTriggerDate,
+                    p.NextTriggerDate,
+                    p.UsedAmount,
+                    playerJoinList[p.MainInfo.Id].Select(j => j.PlayerCode)));
 
 		await foreach (var distributor in distributors
 			               .ToAsyncEnumerable()

@@ -32,7 +32,8 @@ public class PromotionDistributorTests
 			scheduleStartDate,
 			scheduleEndDate,
 			0M,
-			fakeSerialNumberGenerator,
+            new[] { "test1" },
+            fakeSerialNumberGenerator,
 			fakeMessageSender,
 			fakePromotionServiceClient);
 
@@ -107,7 +108,8 @@ public class PromotionDistributorTests
 			scheduleStartDate,
 			scheduleEndDate,
 			0M,
-			fakeSerialNumberGenerator,
+            new[] { "test1" },
+            fakeSerialNumberGenerator,
 			fakeMessageSender,
 			fakePromotionServiceClient);
 
@@ -159,7 +161,161 @@ public class PromotionDistributorTests
 					dists => expectedDistributes.Matches(dists)));
 	}
 
-	[Test]
+    [Test]
+    public async Task 活動救援金發放會依照每日統計執行發放_When_No_Auto_Join_Promotion()
+    {
+        // Arrange
+        var promotionMainInfo = new PromotionMainInfo
+        {
+            Id = Guid.NewGuid(),
+            BrandId = Guid.NewGuid(),
+            PromotionLimitAmount = null
+        };
+        var scheduleStartDate = DateTimeOffset.Parse("2022-12-7 00:00:00+8");
+        var scheduleEndDate = DateTimeOffset.Parse("2022-12-7 00:00:00+8");
+        var firstDate = DateOnly.Parse("2022-12-7");
+
+        var fakeSerialNumberGenerator = Substitute.For<ISerialNumberGenerator>();
+        var fakeMessageSender = Substitute.For<IMessageSender>();
+        var fakePromotionServiceClient = Substitute.For<IPromotionServiceClient>();
+
+        var sut = new PromotionDistributor(
+            promotionMainInfo,
+            scheduleStartDate,
+            scheduleEndDate,
+            0M,
+            new[] { "test1" },
+            fakeSerialNumberGenerator,
+            fakeMessageSender,
+            fakePromotionServiceClient);
+
+        var fakeTgsRepository = Substitute.For<ITgsRepository>();
+
+        _ = fakePromotionServiceClient.GetPromotionDistributePlanAsync(Arg.Any<Guid>(), Arg.Any<long>())
+            .Returns(new PromotionDistributePlanInfo(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 123));
+
+        _ = fakeTgsRepository.QueryPromotionReliefSettlementsAsync(
+            Arg.Is(promotionMainInfo.Id),
+            Arg.Is(scheduleStartDate.UtcDateTime),
+            Arg.Is(scheduleEndDate.UtcDateTime.AddDays(1)))
+            .Returns(new[] {
+                new PromotionReliefSettlement(
+                    "test1",
+                    Guid.NewGuid(),
+                    promotionMainInfo.Id,
+                    10000M,
+                    1000M,
+                    10000M,
+                    new ReliefSettings(
+                        null,
+                        null,
+                        100M,
+                        50000M,
+                        10M,
+                        10M,
+                        false,
+                        Array.Empty<int>()))
+            }.ToAsyncEnumerable());
+
+        var expectedDistributes = new[]
+        {
+            new
+            {
+                DistributeDate = firstDate,
+                PlayerCode = "test1",
+                Bonus = 1000M,
+                BucketAmount = 10000M
+            }
+        }.ToExpectedObject();
+
+        // Act
+        await sut.ProcessDistributesAsync(fakeTgsRepository);
+
+        // Assert
+        _ = fakeTgsRepository.Received(1)
+            .SavePromotionReliefDistributesAsync(
+                Arg.Is<IEnumerable<PromotionReliefDistribute>>(
+                    dists => expectedDistributes.Matches(dists)));
+    }
+
+    [Test]
+    public async Task No_Send_The_SOS_If_Has_No_Participant_And_Has_No_Auto_Join_Promotion()
+    {
+        // Arrange
+        var promotionMainInfo = new PromotionMainInfo
+        {
+            Id = Guid.NewGuid(),
+            BrandId = Guid.NewGuid(),
+            PromotionLimitAmount = null
+        };
+        var scheduleStartDate = DateTimeOffset.Parse("2022-12-7 00:00:00+8");
+        var scheduleEndDate = DateTimeOffset.Parse("2022-12-7 00:00:00+8");
+        var firstDate = DateOnly.Parse("2022-12-7");
+
+        var fakeSerialNumberGenerator = Substitute.For<ISerialNumberGenerator>();
+        var fakeMessageSender = Substitute.For<IMessageSender>();
+        var fakePromotionServiceClient = Substitute.For<IPromotionServiceClient>();
+
+        var sut = new PromotionDistributor(
+            promotionMainInfo,
+            scheduleStartDate,
+            scheduleEndDate,
+            0M,
+            new[] { "test12" },
+            fakeSerialNumberGenerator,
+            fakeMessageSender,
+            fakePromotionServiceClient);
+
+        var fakeTgsRepository = Substitute.For<ITgsRepository>();
+
+        _ = fakePromotionServiceClient.GetPromotionDistributePlanAsync(Arg.Any<Guid>(), Arg.Any<long>())
+            .Returns(new PromotionDistributePlanInfo(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 123));
+
+        _ = fakeTgsRepository.QueryPromotionReliefSettlementsAsync(
+            Arg.Is(promotionMainInfo.Id),
+            Arg.Is(scheduleStartDate.UtcDateTime),
+            Arg.Is(scheduleEndDate.UtcDateTime.AddDays(1)))
+            .Returns(new[] {
+                new PromotionReliefSettlement(
+                    "test1",
+                    Guid.NewGuid(),
+                    promotionMainInfo.Id,
+                    10000M,
+                    1000M,
+                    10000M,
+                    new ReliefSettings(
+                        null,
+                        null,
+                        100M,
+                        50000M,
+                        10M,
+                        10M,
+                        false,
+                        Array.Empty<int>()))
+            }.ToAsyncEnumerable());
+
+        var expectedDistributes = new[]
+        {
+            new
+            {
+                DistributeDate = firstDate,
+                PlayerCode = "test1",
+                Bonus = 1000M,
+                BucketAmount = 10000M
+            }
+        }.ToExpectedObject();
+
+        // Act
+        await sut.ProcessDistributesAsync(fakeTgsRepository);
+
+        // Assert
+        _ = fakeTgsRepository.Received(0)
+            .SavePromotionReliefDistributesAsync(
+                Arg.Is<IEnumerable<PromotionReliefDistribute>>(
+                    dists => expectedDistributes.Matches(dists)));
+    }
+
+    [Test]
 	public async Task 活動救援金發放會依照日期區間統計做發放()
 	{
 		// Arrange
@@ -182,7 +338,8 @@ public class PromotionDistributorTests
 			scheduleStartDate,
 			scheduleEndDate,
 			0M,
-			fakeSerialNumberGenerator,
+            new[] { "test1" },
+            fakeSerialNumberGenerator,
 			fakeMessageSender,
 			fakePromotionServiceClient);
 
@@ -336,7 +493,8 @@ public class PromotionDistributorTests
 			scheduleStartDate,
 			scheduleEndDate,
 			0M,
-			fakeSerialNumberGenerator,
+            new[] { "test1" },
+            fakeSerialNumberGenerator,
 			fakeMessageSender,
 			fakePromotionServiceClient);
 
@@ -404,7 +562,8 @@ public class PromotionDistributorTests
 			scheduleStartDate,
 			scheduleEndDate,
 			1200M,
-			fakeSerialNumberGenerator,
+            new[] { "test1" },
+            fakeSerialNumberGenerator,
 			fakeMessageSender,
 			fakePromotionServiceClient);
 

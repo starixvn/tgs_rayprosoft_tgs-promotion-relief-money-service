@@ -13,6 +13,7 @@ internal class PromotionDistributor
     private readonly PromotionMainInfo _promotionMainInfo;
     private readonly IPromotionServiceClient _promotionServiceClient;
     private readonly ISerialNumberGenerator _serialNumberGenerator;
+    private readonly HashSet<string> _joinPlayers;
 
     private readonly DateTimeOffset _startDate;
     private readonly decimal _usedAmount;
@@ -22,6 +23,7 @@ internal class PromotionDistributor
         DateTimeOffset startDate,
         DateTimeOffset endDate,
         decimal usedAmount,
+        IEnumerable<string> joinPlayers,
         ISerialNumberGenerator serialNumberGenerator,
         IMessageSender messageSender,
         IPromotionServiceClient promotionServiceClient)
@@ -30,6 +32,7 @@ internal class PromotionDistributor
         _startDate = startDate;
         _endDate = endDate;
         _usedAmount = usedAmount;
+        _joinPlayers = joinPlayers.ToHashSet();
         _serialNumberGenerator = serialNumberGenerator ?? throw new ArgumentNullException(nameof(serialNumberGenerator));
         _messageSender = messageSender ?? throw new ArgumentNullException(nameof(messageSender));
         _promotionServiceClient = promotionServiceClient ?? throw new ArgumentNullException(nameof(promotionServiceClient));
@@ -55,12 +58,13 @@ internal class PromotionDistributor
                         _startDate.UtcDateTime,
                         _endDate.AddDays(1).UtcDateTime,
                         cancellationToken)
-                    .GroupBy(settle => settle.PlayerCode)
+                    .GroupBy(settle => new { settle.PlayerCode, settle.Settings.DefaultJoin })
                     .SelectAwait(async g => new
                     {
                         DistributeFrom = _startDate,
                         DistributeTo = _endDate,
-                        PlayerCode = g.Key,
+                        g.Key.PlayerCode,
+                        g.Key.DefaultJoin,
                         _promotionMainInfo.BrandId,
                         PromotionId = _promotionMainInfo.Id,
                         Bonus = await g.SumAsync(g => g.Bonus, cancellationToken).ConfigureAwait(false),
@@ -70,6 +74,7 @@ internal class PromotionDistributor
                             .FirstAsync(cancellationToken)
                             .ConfigureAwait(false)).Settings
                     })
+                    .Where(x => x.DefaultJoin || _joinPlayers.Contains(x.PlayerCode))
                     .Where(sum => sum.TotalWinLoss >= sum.Settings.TurnoverThreshold)
                     .Select(sum => new
                     {

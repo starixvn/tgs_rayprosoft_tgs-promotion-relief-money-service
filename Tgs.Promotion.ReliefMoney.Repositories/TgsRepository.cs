@@ -185,7 +185,7 @@ internal class TgsRepository : ITgsRepository
 		var queryPromotions = promotions.ToArray();
 
 		return _dbContext.PromotionParticipants
-            .Where(x => x.CreatedOn <= settleEndDate)
+            .Where(x => x.CreatedOn < settleEndDate)
             .Where(joinPlayer => queryPromotions.Contains(joinPlayer.PromotionId))
 			.Select(joinPlayer => new PlayerJoinRecord(joinPlayer.PromotionId, joinPlayer.PlayerCode!))
 			.ToAsyncEnumerable();
@@ -265,7 +265,15 @@ internal class TgsRepository : ITgsRepository
 
 	}
 
-	public ValueTask<PromotionReliefDistribute?> GetReliefDistributeAsync(Guid distributeId, CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<string> GetPlayerCodesByDailyStatisticsReportDateAsync(DateTimeOffset reportDate, IEnumerable<Guid> promotionIds,
+        CancellationToken cancellationToken = default)
+        => _dbContext.PromotionReliefDailyStatistics
+            .Where(x => promotionIds.Contains(x.PromotionId))
+            .Where(x => x.ReportDate == new DateOnly(reportDate.Year, reportDate.Month, reportDate.Day))
+            .Select(x => x.PlayerCode)
+            .ToAsyncEnumerable();
+
+    public ValueTask<PromotionReliefDistribute?> GetReliefDistributeAsync(Guid distributeId, CancellationToken cancellationToken = default)
 		=> _dbContext.PromotionReliefDistributes
 			.FindAsync(new object?[] { distributeId }, cancellationToken: cancellationToken)
 			.AsTask()
