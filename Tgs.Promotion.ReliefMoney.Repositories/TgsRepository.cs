@@ -157,21 +157,26 @@ internal class TgsRepository : ITgsRepository
 		_ = await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	public async ValueTask<PromotionReliefDistribute[]> GetReliefUnDistributedAsync(Guid promotionId, DateOnly date,
-		CancellationToken cancellationToken = default)
-		=> await _dbContext.PromotionReliefDistributes
-			.Where(row => row.PromotionId == promotionId)
-			.Where(row => row.DistributeDate == date)
-			.Select(row => new PromotionReliefDistribute(
-				row.Id,
-				row.DistributeDate,
-				row.PlayerCode,
-				row.BrandId,
-				row.PromotionId,
-				row.Bonus,
-				row.BucketAmount,
-				JsonSerializer.Deserialize<ReliefSettings>(row.Settings, PromotionReliefUtility.SerializerOptions)!))
-			.ToArrayAsync(cancellationToken);
+    public async ValueTask<PromotionReliefDistribute[]> GetReliefUnDistributedAsync(Guid promotionId,
+        DateOnly date,
+        CancellationToken cancellationToken = default)
+    {
+        var option = PromotionReliefUtility.SerializerOptions;
+
+        return await _dbContext.PromotionReliefDistributes
+            .Where(row => row.PromotionId == promotionId)
+            .Where(row => row.DistributeDate == date)
+            .Select(row => new PromotionReliefDistribute(
+                row.Id,
+                row.DistributeDate,
+                row.PlayerCode,
+                row.BrandId,
+                row.PromotionId,
+                row.Bonus,
+                row.BucketAmount,
+                JsonSerializer.Deserialize<ReliefSettings>(row.Settings, option)!))
+            .ToArrayAsync(cancellationToken);
+    }
 
 	public async ValueTask<bool> CheckHaveReliefDistributeAsync(Guid promotionId, DateOnly date,
 		CancellationToken cancellationToken = default)
