@@ -1,4 +1,5 @@
 ﻿using Google.Protobuf;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using Tgs.Promotion.ReliefMoney.Core.ApplicationServices;
 using Tgs.Promotion.ReliefMoney.Service.MessageQueue;
@@ -15,7 +16,7 @@ public class PayOutBonusHandlerTests
 		// Arrange
 		var fakePayOutService = Substitute.For<ICommandService<PayOutCommand>>();
 
-		var sut = new PayOutBonusHandler(fakePayOutService);
+		var sut = new PayOutBonusHandler(fakePayOutService, NullLogger<PayOutBonusHandler>.Instance);
 
 		var request = new BonusTransferRequest
 		{
