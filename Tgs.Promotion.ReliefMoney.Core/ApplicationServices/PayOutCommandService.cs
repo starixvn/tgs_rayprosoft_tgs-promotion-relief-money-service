@@ -33,17 +33,30 @@ internal class PayOutCommandService : ICommandService<PayOutCommand>
 			return;
 		}
 
-		_ = await _promotionServiceClient.DistributePromotionBonusAsync(
-			command.PlanId,
-			distribute.PlayerCode,
-			distribute.Bonus,
-			distribute.BucketAmount,
-			null,
-			distribute.Id,
-			cancellationToken).ConfigureAwait(false);
+        try
+        {
+            _ = await _promotionServiceClient.DistributePromotionBonusAsync(
+                command.PlanId,
+                distribute.PlayerCode,
+                distribute.Bonus,
+                distribute.BucketAmount,
+                null,
+                distribute.Id,
+                cancellationToken).ConfigureAwait(false);
 
-		await _tgsRepository.SetPromotionReliefDistributedAsync(
-			distribute.Id,
-			cancellationToken).ConfigureAwait(false);
-	}
+            await _tgsRepository.SetPromotionReliefDistributedAsync(
+                distribute.Id,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(
+                "Can't distribute to {player}, {bonus} amount, {bucketAmount} bucket amount, {id}. {message}",
+                distribute.PlayerCode,
+                distribute.Bonus,
+                distribute.BucketAmount,
+                distribute.Id,
+                e.Message);
+        }
+    }
 }
